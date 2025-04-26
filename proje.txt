@@ -2,7 +2,10 @@
 
 
 ## Proje Özeti
-Bu proje, çiftçiler ve kullanıcılar arasında ağaç kiralama sistemi oluşturmayı amaçlayan bir mobil uygulamadır. Kullanıcılar çiftçilerin tanımladığı ağaçları kiralayabilir, ürünlerin işlenmesi için tercihlerini belirtebilir ve ağaçların gelişimini takip edebilirler. Sistem RFID teknolojisi ve blokzincir altyapısı kullanarak şeffaf bir ürün takibi sağlayacaktır.
+Bu proje, çiftçiler ve kullanıcılar arasında ağaç kiralama sistemi oluşturmayı amaçlayan 
+bir mobil uygulamadır. Kullanıcılar çiftçilerin tanımladığı ağaçları kiralayabilir, 
+ürünlerin işlenmesi için tercihlerini belirtebilir ve ağaçların gelişimini takip edebilirler. 
+Sistem RFID teknolojisi ve blokzincir altyapısı kullanarak şeffaf bir ürün takibi sağlayacaktır.
 
 
 ## Temel Özellikler
@@ -30,7 +33,11 @@ Bu proje, çiftçiler ve kullanıcılar arasında ağaç kiralama sistemi oluşt
 - Veri Saklama : Şimdilik yerel JSON (ileride veritabanı eklenecek)
 - Kimlik Doğrulama : Basit kullanıcı/çiftçi girişi
 - Entegrasyonlar : RFID, Blokzincir, Konum servisleri (ileride eklenecek)
+
+
 ## Ekran Tasarımları
+
+
 ### 1. Giriş ve Kayıt Ekranları 1.1. Açılış Ekranı
 - Uygulama logosu
 - "Çiftçi Girişi" ve "Kullanıcı Girişi" butonları
@@ -41,6 +48,9 @@ Bu proje, çiftçiler ve kullanıcılar arasında ağaç kiralama sistemi oluşt
 - E-posta/kullanıcı adı ve şifre alanları
 - Giriş butonu
 - Şifremi unuttum seçeneği
+
+
+
 ### 2. Çiftçi Ekranları 2.1. Çiftçi Ana Sayfası
 - Bahçe listesi
 - Ağaç istatistikleri özeti
@@ -61,6 +71,10 @@ Bu proje, çiftçiler ve kullanıcılar arasında ağaç kiralama sistemi oluşt
 - Kullanıcı listesi
 - Mesaj geçmişi
 - Yeni mesaj gönderme
+
+
+
+
 ### 3. Kullanıcı Ekranları 3.1. Kullanıcı Ana Sayfası
 - Kiralanabilir ağaçlar
 - Kiralanan ağaçlar
@@ -124,7 +138,8 @@ Projeyi aşağıdaki sırayla geliştirmeye başlayabiliriz:
    - Blokzincir entegrasyonu (ileride)
    - Ürün yolculuğu takibi
 ## İlk Adım: Giriş Ekranı Geliştirme
-Projeye başlamak için ilk olarak giriş ekranını oluşturalım. Bu, kullanıcıların ve çiftçilerin uygulamaya giriş yapabilecekleri ilk nokta olacak.
+Projeye başlamak için ilk olarak giriş ekranını oluşturalım. Bu, kullanıcıların ve 
+çiftçilerin uygulamaya giriş yapabilecekleri ilk nokta olacak.
 
 ### Giriş Ekranı Bileşenleri:
 1. Uygulama logosu ve başlık

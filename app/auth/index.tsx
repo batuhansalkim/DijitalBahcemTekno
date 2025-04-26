@@ -1,39 +1,57 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text, Button } from 'react-native-paper';
+import { View, StyleSheet, Dimensions } from 'react-native';
+import { Text, Button, Surface } from 'react-native-paper';
 import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width } = Dimensions.get('window');
 
 export default function AuthScreen() {
   return (
     <View style={styles.container}>
-      <View style={styles.logoContainer}>
-        <Text style={styles.logo}>🌳</Text>
-        <Text style={styles.title}>Dijital Bahçem</Text>
-      </View>
+      <LinearGradient
+        colors={['#4CAF50', '#2E7D32']}
+        style={styles.gradient}
+      >
+        <View style={styles.logoContainer}>
+          <Text style={styles.logo}>🌳</Text>
+          <Text style={styles.title}>Dijital Bahçem</Text>
+          <Text style={styles.subtitle}>Doğayla Bağınızı Güçlendirin</Text>
+        </View>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          mode="contained"
-          onPress={() => router.push('/auth/login')}
-          style={styles.button}
-          contentStyle={styles.buttonContent}
-        >
-          Giriş Yap
-        </Button>
+        <View style={styles.buttonContainer}>
+          <Surface style={styles.surface}>
+            <Button
+              mode="contained"
+              onPress={() => router.push('/auth/login?type=user')}
+              style={styles.button}
+              contentStyle={styles.buttonContent}
+              labelStyle={styles.buttonLabel}
+            >
+              Kullanıcı Girişi
+            </Button>
 
-        <Button
-          mode="outlined"
-          onPress={() => router.push('/auth/register')}
-          style={styles.button}
-          contentStyle={styles.buttonContent}
-        >
-          Kayıt Ol
-        </Button>
-      </View>
+            <Button
+              mode="contained"
+              onPress={() => router.push('/auth/login?type=farmer')}
+              style={[styles.button, styles.farmerButton]}
+              contentStyle={styles.buttonContent}
+              labelStyle={[styles.buttonLabel, styles.farmerButtonLabel]}
+            >
+              Çiftçi Girişi
+            </Button>
 
-      <Text style={styles.footer}>
-        Doğayla bağınızı güçlendirin, geleceğe yatırım yapın.
-      </Text>
+            <Button
+              mode="outlined"
+              onPress={() => router.push('/auth/register')}
+              style={styles.registerButton}
+              labelStyle={styles.registerButtonLabel}
+            >
+              Yeni Hesap Oluştur
+            </Button>
+          </Surface>
+        </View>
+      </LinearGradient>
     </View>
   );
 }
@@ -41,15 +59,15 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  gradient: {
+    flex: 1,
     justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#F5F5F5',
+    paddingVertical: 48,
   },
   logoContainer: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: 40,
   },
   logo: {
     fontSize: 80,
@@ -58,24 +76,47 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#ffffff',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#E8F5E9',
     textAlign: 'center',
   },
   buttonContainer: {
-    width: '100%',
     paddingHorizontal: 20,
-    marginBottom: 40,
+  },
+  surface: {
+    padding: 20,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    elevation: 4,
   },
   button: {
-    marginVertical: 10,
-    borderRadius: 25,
+    marginBottom: 12,
+    height: 50,
+    justifyContent: 'center',
   },
   buttonContent: {
-    paddingVertical: 8,
+    height: 50,
   },
-  footer: {
-    color: '#558B2F',
-    textAlign: 'center',
-    marginBottom: 20,
+  buttonLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  farmerButtonLabel: {
+    color: '#ffffff',
+  },
+  farmerButton: {
+    backgroundColor: '#1B5E20',
+  },
+  registerButton: {
+    marginTop: 8,
+    borderColor: '#2E7D32',
+  },
+  registerButtonLabel: {
+    color: '#2E7D32',
   },
 }); 

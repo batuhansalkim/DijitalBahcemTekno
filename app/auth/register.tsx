@@ -1,167 +1,474 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, TextInput, Button, SegmentedButtons } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { Text, TextInput, Button, HelperText, IconButton, Surface } from 'react-native-paper';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function RegisterScreen() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [userType, setUserType] = useState('user');
+  const [formData, setFormData] = useState({
+    name: '',
+    surname: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    gardenLocation: '',
+    products: '',
+    phone: '',
+  });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false);
+
+  const validateForm = () => {
+    if (!formData.name || !formData.surname) {
+      setError('Ad ve soyad alanları zorunludur');
+      return false;
+    }
+    if (!formData.email || !formData.email.includes('@')) {
+      setError('Geçerli bir e-posta adresi giriniz');
+      return false;
+    }
+    if (!formData.password || formData.password.length < 6) {
+      setError('Şifre en az 6 karakter olmalıdır');
+      return false;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError('Şifreler eşleşmiyor');
+      return false;
+    }
+    if (userType === 'farmer') {
+      if (!formData.gardenLocation) {
+        setError('Bahçe konumu zorunludur');
+        return false;
+      }
+      if (!formData.products) {
+        setError('Üretilen ürünler zorunludur');
+        return false;
+      }
+      if (!formData.phone) {
+        setError('Telefon numarası zorunludur');
+        return false;
+      }
+    }
+    if (!acceptTerms) {
+      setError('Kullanım koşullarını kabul etmelisiniz');
+      return false;
+    }
+    return true;
+  };
 
   const handleRegister = async () => {
-    if (password !== confirmPassword) {
-      // TODO: Şifre uyuşmazlığı hatası göster
-      return;
-    }
+    if (!validateForm()) return;
 
     setLoading(true);
+    setError('');
+
     try {
-      // Gerçek API entegrasyonunda bu kısım değişecek
-      // Şimdilik local storage'da saklayalım
       const userData = {
         id: Date.now().toString(),
-        name,
-        email,
+        name: formData.name,
+        surname: formData.surname,
+        email: formData.email,
+        password: formData.password,
         userType,
-        // Gerçek uygulamada şifre asla plain text saklanmaz
-        password
+        ...(userType === 'farmer' && {
+          gardenLocation: formData.gardenLocation,
+          products: formData.products,
+          phone: formData.phone,
+        }),
       };
 
-      // Kullanıcı bilgilerini saklama
       await AsyncStorage.setItem('user', JSON.stringify(userData));
-      
-      // Kullanıcı tipine göre yönlendirme
+      await AsyncStorage.setItem('currentUser', JSON.stringify(userData));
+
       if (userType === 'farmer') {
         router.replace('/farmer/');
       } else {
-        router.replace('/tabs/');
+        router.replace('/(tabs)/');
       }
     } catch (error) {
       console.error('Kayıt hatası:', error);
-      // TODO: Hata mesajı göster
+      setError('Kayıt olurken bir hata oluştu');
     } finally {
       setLoading(false);
     }
   };
 
+  const UserTypeCard = ({ type, title, description, icon }) => (
+    <TouchableOpacity
+      onPress={() => setUserType(type)}
+      style={[
+        styles.userTypeCard,
+        userType === type && styles.selectedCard
+      ]}
+    >
+      <Surface style={[styles.iconContainer, userType === type && styles.selectedIconContainer]}>
+        <MaterialCommunityIcons
+          name={icon}
+          size={32}
+          color={userType === type ? '#fff' : '#2E7D32'}
+        />
+      </Surface>
+      <Text style={[styles.cardTitle, userType === type && styles.selectedText]}>
+        {title}
+      </Text>
+      <Text style={[styles.cardDescription, userType === type && styles.selectedText]}>
+        {description}
+      </Text>
+    </TouchableOpacity>
+  );
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Kayıt Ol</Text>
-        <Text style={styles.subtitle}>Dijital Bahçem'e hoş geldiniz!</Text>
-
-        <SegmentedButtons
-          value={userType}
-          onValueChange={setUserType}
-          buttons={[
-            { value: 'user', label: 'Kullanıcı' },
-            { value: 'farmer', label: 'Çiftçi' },
-          ]}
-          style={styles.segmentedButtons}
-        />
-
-        <TextInput
-          label="Ad Soyad"
-          value={name}
-          onChangeText={setName}
-          mode="outlined"
-          style={styles.input}
-        />
-
-        <TextInput
-          label="E-posta"
-          value={email}
-          onChangeText={setEmail}
-          mode="outlined"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          style={styles.input}
-        />
-
-        <TextInput
-          label="Şifre"
-          value={password}
-          onChangeText={setPassword}
-          mode="outlined"
-          secureTextEntry
-          style={styles.input}
-        />
-
-        <TextInput
-          label="Şifre Tekrar"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          mode="outlined"
-          secureTextEntry
-          style={styles.input}
-        />
-
-        <Button
-          mode="contained"
-          onPress={handleRegister}
-          style={styles.button}
-          loading={loading}
-        >
-          Kayıt Ol
-        </Button>
-
-        <View style={styles.loginContainer}>
-          <Text>Zaten hesabınız var mı? </Text>
-          <Button
-            mode="text"
-            onPress={() => router.push('/auth/login')}
-            style={styles.textButton}
-          >
-            Giriş Yap
-          </Button>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <LinearGradient
+        colors={['#4CAF50', '#2E7D32']}
+        style={styles.gradient}
+      >
+        <View style={styles.header}>
+          <IconButton
+            icon="arrow-left"
+            size={24}
+            onPress={() => router.back()}
+            iconColor="#fff"
+          />
         </View>
-      </View>
-    </ScrollView>
+
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <View style={styles.topSection}>
+            <Text style={styles.welcomeText}>Yeni Hesap</Text>
+            <Text style={styles.subtitle}>
+              Dijital Bahçem'e hoş geldiniz
+            </Text>
+          </View>
+
+          <Surface style={styles.formContainer}>
+            <Text style={styles.sectionTitle}>Hesap Türü</Text>
+            <View style={styles.userTypeContainer}>
+              <UserTypeCard
+                type="user"
+                title="Kullanıcı"
+                description="Kendi ağacınızın hikayesine ortak olun"
+                icon="account"
+              />
+              <UserTypeCard
+                type="farmer"
+                title="Çiftçi"
+                description="Bahçenizi dijital dünyaya taşıyın"
+                icon="tree"
+              />
+            </View>
+
+            <Text style={styles.sectionTitle}>Kişisel Bilgiler</Text>
+            
+            <TextInput
+              label="Ad"
+              value={formData.name}
+              onChangeText={(text) => {
+                setFormData({ ...formData, name: text });
+                setError('');
+              }}
+              mode="outlined"
+              style={styles.input}
+              outlineStyle={styles.inputOutline}
+              left={<TextInput.Icon icon="account" />}
+              theme={{ colors: { primary: '#2E7D32' } }}
+            />
+
+            <TextInput
+              label="Soyad"
+              value={formData.surname}
+              onChangeText={(text) => {
+                setFormData({ ...formData, surname: text });
+                setError('');
+              }}
+              mode="outlined"
+              style={styles.input}
+              outlineStyle={styles.inputOutline}
+              left={<TextInput.Icon icon="account" />}
+              theme={{ colors: { primary: '#2E7D32' } }}
+            />
+
+            <TextInput
+              label="E-posta"
+              value={formData.email}
+              onChangeText={(text) => {
+                setFormData({ ...formData, email: text });
+                setError('');
+              }}
+              mode="outlined"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              style={styles.input}
+              outlineStyle={styles.inputOutline}
+              left={<TextInput.Icon icon="email" />}
+              theme={{ colors: { primary: '#2E7D32' } }}
+            />
+
+            <TextInput
+              label="Şifre"
+              value={formData.password}
+              onChangeText={(text) => {
+                setFormData({ ...formData, password: text });
+                setError('');
+              }}
+              mode="outlined"
+              secureTextEntry={!showPassword}
+              style={styles.input}
+              outlineStyle={styles.inputOutline}
+              left={<TextInput.Icon icon="lock" />}
+              right={
+                <TextInput.Icon
+                  icon={showPassword ? "eye-off" : "eye"}
+                  onPress={() => setShowPassword(!showPassword)}
+                />
+              }
+              theme={{ colors: { primary: '#2E7D32' } }}
+            />
+
+            <TextInput
+              label="Şifre Tekrar"
+              value={formData.confirmPassword}
+              onChangeText={(text) => {
+                setFormData({ ...formData, confirmPassword: text });
+                setError('');
+              }}
+              mode="outlined"
+              secureTextEntry={!showPassword}
+              style={styles.input}
+              outlineStyle={styles.inputOutline}
+              left={<TextInput.Icon icon="lock" />}
+              theme={{ colors: { primary: '#2E7D32' } }}
+            />
+
+            {userType === 'farmer' && (
+              <>
+                <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Çiftçi Bilgileri</Text>
+                <TextInput
+                  label="Bahçe Konumu"
+                  value={formData.gardenLocation}
+                  onChangeText={(text) => {
+                    setFormData({ ...formData, gardenLocation: text });
+                    setError('');
+                  }}
+                  mode="outlined"
+                  style={styles.input}
+                  outlineStyle={styles.inputOutline}
+                  left={<TextInput.Icon icon="map-marker" />}
+                  placeholder="İl, İlçe, Mahalle"
+                  theme={{ colors: { primary: '#2E7D32' } }}
+                />
+
+                <TextInput
+                  label="Üretilen Ürünler"
+                  value={formData.products}
+                  onChangeText={(text) => {
+                    setFormData({ ...formData, products: text });
+                    setError('');
+                  }}
+                  mode="outlined"
+                  style={styles.input}
+                  outlineStyle={styles.inputOutline}
+                  left={<TextInput.Icon icon="fruit-cherries" />}
+                  placeholder="Örn: Zeytin, Fındık"
+                  theme={{ colors: { primary: '#2E7D32' } }}
+                />
+
+                <TextInput
+                  label="Telefon"
+                  value={formData.phone}
+                  onChangeText={(text) => {
+                    setFormData({ ...formData, phone: text });
+                    setError('');
+                  }}
+                  mode="outlined"
+                  keyboardType="phone-pad"
+                  style={styles.input}
+                  outlineStyle={styles.inputOutline}
+                  left={<TextInput.Icon icon="phone" />}
+                  placeholder="05XX XXX XX XX"
+                  theme={{ colors: { primary: '#2E7D32' } }}
+                />
+              </>
+            )}
+
+            <TouchableOpacity
+              style={styles.termsContainer}
+              onPress={() => setAcceptTerms(!acceptTerms)}
+            >
+              <MaterialCommunityIcons
+                name={acceptTerms ? "checkbox-marked" : "checkbox-blank-outline"}
+                size={24}
+                color="#2E7D32"
+              />
+              <Text style={styles.termsText}>
+                Kullanım koşullarını kabul ediyorum
+              </Text>
+            </TouchableOpacity>
+
+            {error ? (
+              <HelperText type="error" visible={!!error} style={styles.errorText}>
+                {error}
+              </HelperText>
+            ) : null}
+
+            <Button
+              mode="contained"
+              onPress={handleRegister}
+              style={styles.registerButton}
+              contentStyle={styles.buttonContent}
+              loading={loading}
+              icon="account-plus"
+            >
+              {loading ? 'Kayıt yapılıyor...' : 'Hesap Oluştur'}
+            </Button>
+
+            <Button
+              mode="text"
+              onPress={() => router.back()}
+              style={styles.backButton}
+              textColor="#666"
+            >
+              Zaten hesabım var
+            </Button>
+          </Surface>
+        </ScrollView>
+      </LinearGradient>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
     backgroundColor: '#fff',
   },
-  content: {
-    padding: 20,
-    alignItems: 'center',
+  gradient: {
+    flex: 1,
   },
-  title: {
+  header: {
+    paddingTop: Platform.OS === 'ios' ? 40 : 10,
+    paddingHorizontal: 10,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  topSection: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  welcomeText: {
     fontSize: 32,
     fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#2E7D32',
+    color: '#fff',
+    marginTop: 16,
   },
   subtitle: {
+    fontSize: 16,
+    color: '#E8F5E9',
+    textAlign: 'center',
+    marginTop: 8,
+    paddingHorizontal: 32,
+  },
+  formContainer: {
+    backgroundColor: '#fff',
+    marginTop: 20,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    elevation: 8,
+  },
+  sectionTitle: {
     fontSize: 18,
-    marginBottom: 32,
-    color: '#666',
-  },
-  segmentedButtons: {
-    marginBottom: 24,
-  },
-  input: {
-    width: '100%',
+    fontWeight: 'bold',
+    color: '#2E7D32',
     marginBottom: 16,
   },
-  button: {
-    width: '100%',
-    marginTop: 8,
+  userTypeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  userTypeCard: {
+    width: '48%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+  },
+  selectedCard: {
     backgroundColor: '#2E7D32',
+    borderColor: '#2E7D32',
   },
-  textButton: {
-    marginTop: 8,
+  iconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#E8F5E9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  loginContainer: {
+  selectedIconContainer: {
+    backgroundColor: '#1B5E20',
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+    marginBottom: 4,
+  },
+  cardDescription: {
+    fontSize: 12,
+    color: '#666',
+  },
+  selectedText: {
+    color: '#fff',
+  },
+  input: {
+    marginBottom: 16,
+    backgroundColor: '#fff',
+  },
+  inputOutline: {
+    borderRadius: 8,
+  },
+  termsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
+    marginVertical: 16,
+  },
+  termsText: {
+    marginLeft: 8,
+    color: '#666',
+    flex: 1,
+  },
+  errorText: {
+    marginBottom: 16,
+    fontSize: 14,
+  },
+  registerButton: {
+    marginTop: 8,
+    backgroundColor: '#2E7D32',
+    borderRadius: 8,
+    height: 48,
+  },
+  buttonContent: {
+    height: 48,
+  },
+  backButton: {
+    marginTop: 12,
   },
 }); 
