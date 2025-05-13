@@ -1,0 +1,115 @@
+ethers.js ve web3.js Nedir?
+ethers.js
+ethers.js, Ethereum Blockchain ve ekosistemiyle etkileşim kurmak için tasarlanmış, eksiksiz ve kompakt bir JavaScript/TypeScript kütüphanesidir 
+Ethers Documentation
+. Bu kütüphane sayesinde akıllı kontratlarla rahatça iletişim kurabilir, işlemleri imzalayıp gönderebilir ve zincirden veri okuyabilirsiniz 
+docs.alchemy.com
+.
+
+web3.js
+web3.js, Ethereum JSON-RPC API’sını sarmalayan modüler yapıda bir JavaScript/TypeScript kitaplığıdır 
+docs.web3js.org
+. HTTP, IPC veya WebSocket bağlantıları üzerinden hem yerel hem de uzaktaki Ethereum düğümleriyle iletişim kurmanızı sağlar 
+Medium
+.
+
+Temel Özellikler Karşılaştırması
+Provider & Signer: ethers.js’te Provider ve Signer kavramları ile okuma/yazma erişiminizi ayrıştırabilir, web3.js’te ise web3.eth modülü altında benzer yeteneklere erişirsiniz 
+Ethers Documentation
+ 
+web3js.readthedocs.io
+.
+
+Boyut ve Performans: ethers.js, sıkıştırıldığında yaklaşık 88 KB’lık boyutuyla görece daha hafiftir 
+Ethers Documentation
+.
+
+Modülerlik: web3.js, web3-eth, web3-net, web3-utils gibi ayrı paketlerle esnek bir yapı sunar 
+web3js.readthedocs.io
+.
+
+Projenizde Kullanım Alanları
+a) Ağaç Kiralama İşlemleri
+İşlem Kaydı: Kullanıcı bir ağacı kiralamak istediğinde, bu talep blockchain üzerinde “rentTree” gibi bir fonksiyon çağrısıyla saklanabilir.
+
+Akıllı Kontrat: Kiralama sözleşmesi, akıllı kontrat olarak tanımlanır; kiralama süresi, fiyat ve kiracının adresi zincirde depolanır.
+
+Ödeme Yönetimi: Ödemeler ETH veya token bazlı olabilir; ethers.js veya web3.js ile işlemler imzalanıp gönderilir.
+
+b) Ağaç Takip Sistemi
+Kayıt Oluşturma: Her ağaç için registerTree(treeId, metadataURI) benzeri bir fonksiyonla başlangıç bilgisi kaydedilir.
+
+Durum Güncelleme: Bakım, gübreleme veya hasat gibi aşamalar updateTreeStatus(treeId, status) ile blockchain’e işlenir.
+
+Şeffaf İzleme: Zincir üzerindeki event’ler dinlenerek tüm yaşam döngüsü şeffafça takip edilebilir.
+
+c) Bahçe Yönetimi
+Mülkiyet Kaydı: Bahçenin sahiplik bilgileri registerGarden(gardenId, ownerAddress) ile blokzincir üzerinde tutulur.
+
+Ağaç-Envanter: Bir bahçe içindeki ağaçların listesi ve durumları, akıllı kontrat veri yapılarında saklanır.
+
+Karar Defteri: Ekim, kesim veya yeni ağaç ekimi gibi kritik kararlar blokzincir üzerinde kayıt altına alınır.
+
+WalletConnect Nedir ve Nasıl Kullanılır?
+WalletConnect Tanımı
+WalletConnect, mobil cüzdanlar ile web-tabanlı dApp’ler arasında güvenli bir köprü kuran açık kaynak bir protokoldür 
+docs.walletconnect.network
+. QR kod veya deep-link aracılığıyla cüzdan bağlantısı sağlar ve işlem onaylarını kullanıcı cüzdanında gerçekleştirir 
+tastycrypto
+.
+
+Projenizdeki Senaryolar
+1. Kimlik Doğrulama (Login)
+Kullanıcı veya çiftçi, cüzdanını WalletConnect üzerinden bağlayarak dApp’e giriş yapabilir.
+
+Kimlik doğrulama, blockchain üzerinde imzalanan bir mesajla güvenli şekilde gerçekleşir.
+
+2. Ödeme İşlemleri
+Ağaç kiralama ödemeleri, ürün satın alma ve çiftçilere yapılan transferler WalletConnect aracılığıyla imzalanır.
+
+Komisyon ve ücret transferleri de aynı kanal üzerinden güvenli şekilde yürütülür.
+
+3. Sözleşme İşlemleri
+Kiralama, bahçe yönetimi veya işleme anlaşmaları, kullanıcı onayıyla cüzdandan imzalanarak blockchain’e işlenir.
+
+Çoklu imza (multi-sig) gerektiren senaryolarda da WalletConnect destekli çözümler kullanılabilir 
+99Bitcoins
+.
+
+4. NFT İşlemleri
+Ağaçlar için NFT mint etme, transfer etme ve metadata yönetimi akıllı kontratlar vasıtasıyla yürütülür.
+
+Sahiplik tokenizasyonu ile NFT’ler dApp üzerinden alınıp satılabilir.
+
+5. Güvenlik ve Yetkilendirme
+Bahçe ve ağaç bakımı için kullanıcı rollerine göre yetki kontrol mekanizmaları çalıştırılır.
+
+İşlem onayı zorunluluğu, tüm kritik fonksiyonların güvenli şekilde imzalanmasını garanti eder.
+
+Bu Teknolojileri Kullanmanın Avantajları
+Şeffaflık: Tüm işlem kayıtları blockchain üzerinde izlenebilir ve sorgulanabilir.
+
+Güvenlik: Değiştirilemeyen kayıt yapısı ve cüzdan bazlı imza süreçleri sayesinde yüksek güvenlik sağlanır.
+
+Otomasyon: Akıllı kontratlar, kiralama ve takip süreçlerini otomatikleştirerek insan hatasını minimize eder.
+
+Güven Oluşumu: Kullanıcılar ile çiftçiler arasında merkezi olmayan bir ortamda güven tesis edilir.
+
+Takip: Ağaç ve bahçe yaşam döngüsü, bakım geçmişi ve finansal akış tamamen izlenebilir.
+
+Örnek Akış Senaryosu
+Kullanıcı dApp’te WalletConnect ile cüzdanını bağlar 
+docs.walletconnect.network
+.
+
+“Ağaç Kiralama” butonuna tıklandığında, rentTree fonksiyonu çağrılır ve işlem imzalanır.
+
+Ödeme cüzdandan onaylanarak blockchain’e iletilir.
+
+Ağaç NFT’si kullanıcıya transfer edilir.
+
+Tüm süreç, kullanıcı arayüzünde güncel durumla birlikte görüntülenir.
+
+Hasat vakti geldiğinde, processTree benzeri bir kontrat fonksiyonu tetiklenir ve sonuç blockchain’e kaydedilir.
+
+Bu doküman, projenizin blockchain entegrasyonunu kavramsal olarak özetlemektedir. Dilerseniz her bir modül için detaylı mimari şemalar veya kullanıcı akış diyagramları da ekleyebiliriz.

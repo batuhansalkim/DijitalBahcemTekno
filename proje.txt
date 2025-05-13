@@ -159,3 +159,44 @@ Bu ekranı geliştirdikten sonra, kullanıcı ve çiftçi ana sayfalarına geçi
 - Şu aşamada veritabanı entegrasyonu yapılmayacak, veriler yerel JSON dosyalarında saklanacak
 - RFID ve blokzincir entegrasyonları ileride eklenecek
 - Uygulamanın temel işlevselliği ve kullanıcı arayüzü öncelikli olarak geliştirilecek
+
+Kullanıcı uygulamaya girer
+E-posta/şifre ile normal giriş yapar
+Profil bilgilerini doldurur/günceller
+
+Kullanıcı profilinde "Dijital Cüzdan Bağla" seçeneği görür
+Bu seçenek opsiyonel olarak sunulur
+Kullanıcı isterse cüzdanını bağlayabilir
+Bağlantı yapılmadan da uygulama kullanılabilir
+
+Kullanıcı ağaç kiralama sayfasına gider
+İstediği ağacı seçer
+Kiralama detaylarını görür
+Burada iki seçenek sunulur:
+Normal ödeme (kredi kartı, banka transferi vb.)
+Dijital cüzdan ile ödeme (eğer cüzdan bağlıysa) bunu seçerse bizim kendi kripto paramızla ödeme
+yaparsa kiralama fiyatı üzerinden %30 indirim uygulanacak hem teşvik hem kendi kripto paramızın
+kullanımını arttırmak için
+
+
+Kullanıcı "Dijital Cüzdan ile Öde" seçeneğini seçer
+WalletConnect QR kodu gösterilir
+Kullanıcı mobil cüzdanı ile QR kodu okutur
+Cüzdan bağlantısı kurulur
+Ödeme miktarı ve detayları gösterilir
+Kullanıcı cüzdanından ödemeyi onaylar
+
+Kiralama sözleşmesi blockchain'de oluşturulur
+İşlem blockchain'e kaydedilir
+Ağaç NFT'si kullanıcıya transfer edilir
+İşlem onayı kullanıcıya bildirilir
+
+Kullanıcı ağacını takip etmeye başlar
+NFT sahipliği blockchain'de görüntülenebilir
+Ağaç gelişimi ve bakım bilgileri takip edilir
+
+Dijital cüzdan kullanımı tamamen opsiyonel
+Normal giriş ve ödeme yöntemleri her zaman mevcut
+Kullanıcı istediği zaman cüzdanını bağlayabilir veya bağlantıyı kaldırabilir
+Cüzdan bağlı olmasa bile uygulamanın tüm özelliklerini kullanabilir
+Blockchain işlemleri sadece dijital cüzdan kullanıldığında devreye girer
