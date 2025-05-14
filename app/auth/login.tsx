@@ -51,14 +51,14 @@ export default function LoginScreen() {
       const fakeUsers = [
         {
           id: '1',
-          email: 'user@example.com',
+          email: 'batu@gmail.com',
           password: '123456',
           userType: 'user',
           name: 'Test Kullanıcı'
         },
         {
           id: '2',
-          email: 'farmer@example.com',
+          email: 'ciftci@example.com',
           password: '123456',
           userType: 'farmer',
           name: 'Test Çiftçi'
