@@ -8,6 +8,8 @@ const { width } = Dimensions.get('window');
 
 export default function AuthScreen() {
   return (
+
+    
     <View style={styles.container}>
       <LinearGradient
         colors={['#4CAF50', '#2E7D32']}

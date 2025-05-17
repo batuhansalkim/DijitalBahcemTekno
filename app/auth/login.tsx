@@ -58,7 +58,7 @@ export default function LoginScreen() {
         },
         {
           id: '2',
-          email: 'ciftci@example.com',
+          email: 'ciftci@gmail.com',
           password: '123456',
           userType: 'farmer',
           name: 'Test Çiftçi'
