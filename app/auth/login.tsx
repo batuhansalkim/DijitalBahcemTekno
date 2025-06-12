@@ -139,41 +139,43 @@ export default function LoginScreen() {
             </Text>
 
             <TextInput
-              label="E-posta"
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                setError('');
-              }}
-              mode="outlined"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={styles.input}
-              outlineStyle={styles.inputOutline}
-              left={<TextInput.Icon icon="email" />}
-              theme={{ colors: { primary: '#2E7D32' } }}
-            />
+  label="E-posta"
+  value={email}
+  onChangeText={(text) => {
+    setEmail(text);
+    setError('');
+  }}
+  mode="outlined"
+  keyboardType="email-address"
+  autoCapitalize="none"
+  style={styles.input}
+  outlineStyle={styles.inputOutline}
+  left={<TextInput.Icon icon="email" />}
+  textColor="#000" //yazı rengi buradan belirleniyor
+  theme={{ colors: { primary: '#2E7D32' } }}
+/>
 
-            <TextInput
-              label="Şifre"
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                setError('');
-              }}
-              mode="outlined"
-              secureTextEntry={!showPassword}
-              style={styles.input}
-              outlineStyle={styles.inputOutline}
-              left={<TextInput.Icon icon="lock" />}
-              right={
-                <TextInput.Icon 
-                  icon={showPassword ? "eye-off" : "eye"} 
-                  onPress={() => setShowPassword(!showPassword)}
-                />
-              }
-              theme={{ colors: { primary: '#2E7D32' } }}
-            />
+<TextInput
+  label="Şifre"
+  value={password}
+  onChangeText={(text) => {
+    setPassword(text);
+    setError('');
+  }}
+  mode="outlined"
+  secureTextEntry={!showPassword}
+  style={styles.input}
+  outlineStyle={styles.inputOutline}
+  left={<TextInput.Icon icon="lock" />}
+  right={
+    <TextInput.Icon
+      icon={showPassword ? "eye-off" : "eye"}
+      onPress={() => setShowPassword(!showPassword)}
+    />
+  }
+  textColor="#000" //yazı rengi buradan belirleniyor
+  theme={{ colors: { primary: '#2E7D32' } }}
+/>
 
             {error ? (
               <HelperText type="error" visible={!!error} style={styles.errorText}>

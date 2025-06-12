@@ -182,6 +182,7 @@ export default function RegisterScreen() {
               style={styles.input}
               outlineStyle={styles.inputOutline}
               left={<TextInput.Icon icon="account" />}
+              textColor="#000"
               theme={{ colors: { primary: '#2E7D32' } }}
             />
 
@@ -196,6 +197,7 @@ export default function RegisterScreen() {
               style={styles.input}
               outlineStyle={styles.inputOutline}
               left={<TextInput.Icon icon="account" />}
+              textColor="#000"
               theme={{ colors: { primary: '#2E7D32' } }}
             />
 
@@ -212,6 +214,7 @@ export default function RegisterScreen() {
               style={styles.input}
               outlineStyle={styles.inputOutline}
               left={<TextInput.Icon icon="email" />}
+              textColor="#000"
               theme={{ colors: { primary: '#2E7D32' } }}
             />
 
@@ -233,6 +236,7 @@ export default function RegisterScreen() {
                   onPress={() => setShowPassword(!showPassword)}
                 />
               }
+              textColor="#000"
               theme={{ colors: { primary: '#2E7D32' } }}
             />
 
@@ -248,6 +252,7 @@ export default function RegisterScreen() {
               style={styles.input}
               outlineStyle={styles.inputOutline}
               left={<TextInput.Icon icon="lock" />}
+              textColor="#000"
               theme={{ colors: { primary: '#2E7D32' } }}
             />
 
@@ -266,6 +271,7 @@ export default function RegisterScreen() {
                   outlineStyle={styles.inputOutline}
                   left={<TextInput.Icon icon="map-marker" />}
                   placeholder="İl, İlçe, Mahalle"
+                  textColor="#000"
                   theme={{ colors: { primary: '#2E7D32' } }}
                 />
 
@@ -281,6 +287,7 @@ export default function RegisterScreen() {
                   outlineStyle={styles.inputOutline}
                   left={<TextInput.Icon icon="fruit-cherries" />}
                   placeholder="Örn: Zeytin, Fındık"
+                  textColor="#000"
                   theme={{ colors: { primary: '#2E7D32' } }}
                 />
 
@@ -297,6 +304,7 @@ export default function RegisterScreen() {
                   outlineStyle={styles.inputOutline}
                   left={<TextInput.Icon icon="phone" />}
                   placeholder="05XX XXX XX XX"
+                  textColor="#000"
                   theme={{ colors: { primary: '#2E7D32' } }}
                 />
               </>

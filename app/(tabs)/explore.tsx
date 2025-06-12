@@ -77,7 +77,17 @@ export default function ExploreScreen() {
           placeholder="Ağaç veya konum ara..."
           onChangeText={setSearchQuery}
           value={searchQuery}
+          theme={{
+            colors: {
+              onSurfaceVariant: '#2D6A4F',
+              onSurface: '#1B4332',
+              elevation: {
+                level3: '#E8F0E3'
+              }
+            }
+          }}
           style={styles.searchBar}
+          placeholderTextColor="#40916C"
         />
         <ScrollView
           horizontal
@@ -89,7 +99,14 @@ export default function ExploreScreen() {
               key={type}
               selected={selectedType === type}
               onPress={() => setSelectedType(type)}
-              style={styles.filterChip}
+              style={[
+                styles.filterChip,
+                selectedType === type && { backgroundColor: '#2D6A4F' }
+              ]}
+              textStyle={{ 
+                color: selectedType === type ? '#FFFFFF' : '#2D6A4F',
+                fontWeight: '600'
+              }}
               showSelectedOverlay
             >
               {type}
@@ -135,6 +152,7 @@ export default function ExploreScreen() {
                 mode="outlined"
                 onPress={() => router.push(`/tree/${tree.id}`)}
                 style={styles.detailsButton}
+                labelStyle={{ color: '#2D6A4F', fontWeight: '600' }}
               >
                 Detaylar
               </Button>
@@ -142,6 +160,7 @@ export default function ExploreScreen() {
                 mode="contained"
                 onPress={() => router.push(`/tree/${tree.id}/rent`)}
                 style={styles.rentButton}
+                labelStyle={{ color: '#FFFFFF', fontWeight: '600' }}
               >
                 Kirala
               </Button>
@@ -156,17 +175,21 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F5F7F3',
   },
   searchContainer: {
     padding: 16,
     backgroundColor: '#fff',
     marginBottom: 8,
+    borderBottomColor: '#E8F0E3',
+    borderBottomWidth: 1,
   },
   searchBar: {
     marginBottom: 12,
     elevation: 0,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F5F7F3',
+    borderWidth: 1,
+    borderColor: '#E8F0E3',
   },
   filterContainer: {
     flexDirection: 'row',
@@ -174,6 +197,20 @@ const styles = StyleSheet.create({
   },
   filterChip: {
     marginRight: 8,
+    backgroundColor: '#E8F0E3',
+    borderWidth: 1,
+    borderColor: '#2D6A4F',
+  },
+  selectedFilterChip: {
+    backgroundColor: '#2D6A4F',
+  },
+  filterText: {
+    color: '#2D6A4F',
+    fontWeight: '600',
+  },
+  selectedFilterText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   treeList: {
     padding: 16,
@@ -182,6 +219,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 12,
     overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E8F0E3',
+    borderWidth: 1,
   },
   treeImage: {
     height: 200,
@@ -192,9 +232,11 @@ const styles = StyleSheet.create({
     right: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 16,
     paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: '#2E7D32',
   },
   starIcon: {
     margin: 0,
@@ -202,15 +244,17 @@ const styles = StyleSheet.create({
   scoreText: {
     fontWeight: 'bold',
     marginRight: 4,
+    color: '#2E7D32',
   },
   treeName: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 4,
+    color: '#1B4332',
   },
   treeLocation: {
     fontSize: 14,
-    color: '#666',
+    color: '#40916C',
     marginBottom: 8,
   },
   treeDetails: {
@@ -218,6 +262,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#E8F0E3',
   },
   farmerInfo: {
     flexDirection: 'row',
@@ -228,22 +275,26 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#E8F0E3',
   },
   farmerName: {
     fontSize: 14,
-    color: '#666',
+    color: '#40916C',
   },
   treePrice: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#2D6A4F',
   },
   detailsButton: {
     flex: 1,
     marginRight: 8,
+    borderColor: '#2D6A4F',
+    borderWidth: 2,
   },
   rentButton: {
     flex: 1,
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#2D6A4F',
   },
 });
