@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Image, Dimensions, Modal } from 'react-native';
+import { View, StyleSheet, ScrollView, Image, Dimensions, Modal, Linking } from 'react-native';
 import { Text, Surface, Button, Divider, IconButton, ProgressBar, Chip } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -68,6 +68,21 @@ export default function TreeDetailScreen() {
   const { id } = useLocalSearchParams();
   const windowWidth = Dimensions.get('window').width;
   const [showMap, setShowMap] = useState(false);
+
+  const openInMapApp = () => {
+    const { latitude, longitude } = TREE_DETAIL.coordinates;
+    const label = encodeURIComponent(TREE_DETAIL.name);
+    const url = `https://maps.google.com/?q=${latitude},${longitude}(${label})`;
+    
+    Linking.openURL(url).catch(err => {
+      console.error('Harita uygulaması açılamadı:', err);
+      // Alternatif olarak Apple Maps'i dene (iOS için)
+      const appleMapsUrl = `http://maps.apple.com/?q=${label}&ll=${latitude},${longitude}`;
+      Linking.openURL(appleMapsUrl).catch(err2 => {
+        console.error('Apple Maps de açılamadı:', err2);
+      });
+    });
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -401,21 +416,38 @@ export default function TreeDetailScreen() {
         </Button>
       </Surface>
 
-      {showMap && (
-        <Modal
-          visible={showMap}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setShowMap(false)}
-        >
-          <View style={styles.mapModal}>
+      {/* Harita Modal */}
+      <Modal
+        visible={showMap}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowMap(false)}
+      >
+        <View style={styles.mapModal}>
+          <View style={styles.mapContainer}>
+            {/* Modal Header */}
+            <View style={styles.mapHeader}>
+              <View style={styles.mapHeaderContent}>
+                <MaterialCommunityIcons name="map-marker" size={24} color="#fff" />
+                <Text style={styles.mapHeaderTitle}>{TREE_DETAIL.name} Konumu</Text>
+              </View>
+              <IconButton
+                icon="close"
+                size={24}
+                iconColor="#fff"
+                onPress={() => setShowMap(false)}
+                style={styles.closeIconButton}
+              />
+            </View>
+            
+            {/* Harita */}
             <MapView
               style={styles.map}
               initialRegion={{
                 latitude: TREE_DETAIL.coordinates.latitude,
                 longitude: TREE_DETAIL.coordinates.longitude,
-                latitudeDelta: 0.0922,
-                longitudeDelta: 0.0421,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
               }}
             >
               <Marker
@@ -424,20 +456,36 @@ export default function TreeDetailScreen() {
                   longitude: TREE_DETAIL.coordinates.longitude,
                 }}
                 title={TREE_DETAIL.name}
-                description={TREE_DETAIL.location}
+                description={`${TREE_DETAIL.location} - ${TREE_DETAIL.treeId}`}
+                pinColor="#2D6A4F"
               />
             </MapView>
-            <Button
-              mode="contained"
-              style={styles.closeButton}
-              labelStyle={styles.closeButtonLabel}
-              onPress={() => setShowMap(false)}
-            >
-              Kapat
-            </Button>
+            
+            {/* Konum Bilgileri */}
+            <View style={styles.mapInfo}>
+              <View style={styles.mapInfoItem}>
+                <MaterialCommunityIcons name="map-marker" size={20} color="#2D6A4F" />
+                <Text style={styles.mapInfoText}>{TREE_DETAIL.location}</Text>
+              </View>
+              <View style={styles.mapInfoItem}>
+                <MaterialCommunityIcons name="crosshairs-gps" size={20} color="#2D6A4F" />
+                <Text style={styles.mapInfoText}>
+                  {TREE_DETAIL.coordinates.latitude.toFixed(6)}, {TREE_DETAIL.coordinates.longitude.toFixed(6)}
+                </Text>
+              </View>
+              <Button
+                mode="contained"
+                icon="map-marker-path"
+                onPress={openInMapApp}
+                style={styles.openMapButton}
+                labelStyle={styles.openMapButtonLabel}
+              >
+                Konumu Haritada Aç
+              </Button>
+            </View>
           </View>
-        </Modal>
-      )}
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -970,20 +1018,61 @@ const styles = StyleSheet.create({
   mapModal: {
     flex: 1,
     justifyContent: 'flex-end',
-    alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  map: {
+  mapContainer: {
     width: '100%',
-    height: '50%',
+    height: '80%',
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    overflow: 'hidden',
   },
-  closeButton: {
+  mapHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
     backgroundColor: '#2D6A4F',
-    height: 56,
   },
-  closeButtonLabel: {
+  mapHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  mapHeaderTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#fff',
+  },
+  closeIconButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  map: {
+    flex: 1,
+  },
+  mapInfo: {
+    padding: 16,
+    backgroundColor: '#F8F9FA',
+  },
+  mapInfoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  mapInfoText: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 8,
+    flex: 1,
+  },
+  openMapButton: {
+    backgroundColor: '#2D6A4F',
+    marginTop: 12,
+  },
+  openMapButtonLabel: {
+    fontSize: 14,
+    color: '#fff',
+    fontWeight: '600',
   },
 }); 

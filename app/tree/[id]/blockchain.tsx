@@ -453,9 +453,11 @@ const styles = StyleSheet.create({
   },
   viewButton: {
     backgroundColor: '#2D6A4F',
+    
     flex: 1,
   },
   addressButton: {
+    
     borderColor: '#2D6A4F',
     flex: 1,
   },

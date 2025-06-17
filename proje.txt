@@ -189,7 +189,10 @@ Kullanıcı cüzdanından ödemeyi onaylar
 Kiralama sözleşmesi blockchain'de oluşturulur
 İşlem blockchain'e kaydedilir
 Ağaç NFT'si kullanıcıya transfer edilir
-İşlem onayı kullanıcıya bildirilir
+İşlem onayı kullanıcıya bildirilir 
+
+birde biz kiralama sözleşmesi yaptık ya o kiralama sözleşmesinin böyle olmasını istiyorum 
+onu nasıl yapabiliriz fake bir sözleşme olacak tabi
 
 Kullanıcı ağacını takip etmeye başlar
 NFT sahipliği blockchain'de görüntülenebilir
