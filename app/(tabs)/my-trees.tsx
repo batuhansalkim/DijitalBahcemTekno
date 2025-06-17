@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
 import { Text, Card, Button, ProgressBar, Surface, Avatar } from 'react-native-paper';
+import { router } from 'expo-router';
 
 // Örnek veri
 const SAMPLE_MY_TREES = [
@@ -58,8 +59,23 @@ export default function MyTreesScreen() {
         <ProgressBar progress={item.health} color={item.health > 0.8 ? '#2E7D32' : '#FFA000'} style={styles.healthBar} />
       </View>
       <View style={styles.cardActions}>
-        <Button mode="contained" style={styles.detailsBtn} onPress={() => {}}>Detaylar</Button>
-        <Button mode="outlined" style={styles.msgBtn} onPress={() => {}}>Mesaj Gönder</Button>
+        <Button 
+          mode="contained" 
+          style={styles.detailsBtn} 
+          onPress={() => router.push({
+            pathname: '/tree/[id]' as const,
+            params: { id: item.id }
+          })}
+        >
+          Detaylar
+        </Button>
+        <Button 
+          mode="outlined" 
+          style={styles.msgBtn} 
+          onPress={() => router.push('/messages')}
+        >
+          Mesaj Gönder
+        </Button>
       </View>
     </Surface>
   );
