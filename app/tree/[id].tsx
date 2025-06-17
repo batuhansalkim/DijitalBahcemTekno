@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, ScrollView, Image, Dimensions } from 'react-native';
-import { Text, Surface, Button, Divider, IconButton, ProgressBar, Chip, Modal, Portal } from 'react-native-paper';
+import { Text, Surface, Button, Divider, IconButton, ProgressBar, Chip } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -65,7 +65,6 @@ const GROWTH_IMAGE = 'https://www.highcharts.com/samples/graphics/spline-irregul
 export default function TreeDetailScreen() {
   const { id } = useLocalSearchParams();
   const windowWidth = Dimensions.get('window').width;
-  const [modalVisible, setModalVisible] = useState(false);
 
   return (
     <ScrollView style={styles.container}>
@@ -78,6 +77,15 @@ export default function TreeDetailScreen() {
           style={{ marginRight: 8 }}
         />
         <Text style={styles.treeNameCentered}>{TREE_DETAIL.name}</Text>
+        <Button
+          mode="contained"
+          style={styles.blockchainButton}
+          labelStyle={styles.blockchainButtonLabel}
+          icon="cube"
+          onPress={() => router.push({ pathname: '/tree/[id]/blockchain', params: { id: TREE_DETAIL.id } })}
+        >
+          Blokzincir
+        </Button>
       </View>
       <View style={styles.titleUnderline} />
 
@@ -96,89 +104,6 @@ export default function TreeDetailScreen() {
           {TREE_DETAIL.score}
         </Chip>
       </View>
-
-      {/* Section başlıkları */}
-      <View style={styles.sectionHeader}>
-        <MaterialCommunityIcons name="tree" size={28} color="#1B4332" style={{ marginRight: 8 }} />
-        <Text style={styles.sectionMainTitle}>Takip Bilgileri</Text>
-      </View>
-
-      {/* Uydu Görüntüsü */}
-      <Surface style={styles.satelliteCard} elevation={4}>
-        <Image
-          source={{ uri: SATELLITE_IMAGE }}
-          style={styles.satelliteImage}
-        />
-        <Text style={styles.sectionTitle}>Uydu Görüntüsü</Text>
-      </Surface>
-
-      <Surface style={styles.growthCard} elevation={4}>
-        <Image
-          source={{ uri: GROWTH_IMAGE }}
-          style={styles.growthImage}
-          resizeMode="contain"
-        />
-        <Text style={styles.sectionTitle}>Ağaç Gelişim Grafiği</Text>
-      </Surface>
-
-      {/* Blokzincir & Ürün Bilgisi Butonu */}
-      <Button
-        mode="contained"
-        style={styles.blockchainButton}
-        labelStyle={styles.blockchainButtonLabel}
-        icon="cube"
-        onPress={() => setModalVisible(true)}
-      >
-        Blokzincir & Ürün Bilgisi
-      </Button>
-
-      {/* Modal */}
-      <Portal>
-        <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)} contentContainerStyle={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <MaterialCommunityIcons name="cube" size={28} color="#2D6A4F" style={{ marginRight: 8 }} />
-            <Text style={styles.modalTitle}>Blokzincir & Ürün Bilgisi</Text>
-          </View>
-          <Surface style={styles.blockchainCard} elevation={4}>
-            <Text style={styles.sectionTitle}>Blokzincir Takip Bilgisi</Text>
-            <Text style={styles.blockchainLabel}>NFT ID: #1234567890abcdef</Text>
-            <Text style={styles.blockchainLabel}>Sahip: 0xA1B2...C3D4</Text>
-            <Text style={styles.blockchainLabel}>Son İşlem: 2024-05-01 14:32</Text>
-            <Text style={styles.blockchainLabel}>İşlem Hash: 0xF1E2...B3C4</Text>
-          </Surface>
-          <Surface style={styles.journeyCard} elevation={4}>
-            <Text style={styles.sectionTitle}>Ürün Yolculuğu & QR Kod</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.journeyStep}>- Hasat Edildi</Text>
-                <Text style={styles.journeyStep}>- İşlendi</Text>
-                <Text style={styles.journeyStep}>- Paketlendi</Text>
-                <Text style={styles.journeyStep}>- Sevk Edildi</Text>
-                <Text style={styles.journeyStep}>- Teslim Edildi</Text>
-              </View>
-              <Image
-                source={{ uri: 'https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=1234567890abcdef' }}
-                style={styles.qrImage}
-              />
-            </View>
-          </Surface>
-          <Surface style={styles.processCard} elevation={4}>
-            <Text style={styles.sectionTitle}>Ürün İşleme & Sevkiyat</Text>
-            <Text style={styles.processLabel}>- İşleme Türü: Zeytinyağı</Text>
-            <Text style={styles.processLabel}>- İşleme Tarihi: 2024-05-02</Text>
-            <Text style={styles.processLabel}>- Sevkiyat Durumu: Yolda</Text>
-            <Text style={styles.processLabel}>- Tahmini Teslim: 2024-05-10</Text>
-          </Surface>
-          <Button
-            mode="contained"
-            style={styles.closeModalButton}
-            labelStyle={styles.closeModalButtonLabel}
-            onPress={() => setModalVisible(false)}
-          >
-            Kapat
-          </Button>
-        </Modal>
-      </Portal>
 
       {/* 3. Kısa Bilgiler */}
       <View style={styles.quickInfoRow}>
@@ -292,6 +217,17 @@ export default function TreeDetailScreen() {
           Hemen Kirala
         </Button>
       </View>
+
+      {/* 8. Gelişim grafiği kartı */}
+      <Surface style={styles.growthCard} elevation={4}>
+        <Image
+          source={{ uri: GROWTH_IMAGE }}
+          style={styles.growthImage}
+          resizeMode="contain"
+        />
+        <Text style={styles.sectionTitle}>Ağaç Gelişim Grafiği</Text>
+        <Text style={styles.growthDescription}>Örnek gelişim grafiği</Text>
+      </Surface>
     </ScrollView>
   );
 }
@@ -304,7 +240,11 @@ const styles = StyleSheet.create({
   titleCard: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8F5E9',
   },
   treeNameCentered: {
     fontSize: 24,
@@ -557,75 +497,20 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#fff',
   },
-  blockchainLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 6,
-  },
-  journeyCard: {
-    margin: 16,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-  },
-  qrImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-  },
-  processCard: {
-    margin: 16,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-  },
-  sectionMainTitle: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#1B4332',
-    marginBottom: 12,
-  },
-  journeyStep: {
-    fontSize: 16,
-    color: '#40916C',
-  },
-  processLabel: {
-    fontSize: 16,
-    color: '#40916C',
-  },
-  sectionHeader: {
-    marginTop: 24,
-    marginBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   blockchainButton: {
     backgroundColor: '#2D6A4F',
+    height: 40,
+    borderRadius: 20,
+    elevation: 2,
   },
   blockchainButtonLabel: {
+    fontSize: 14,
     color: '#fff',
+    fontWeight: '600',
   },
-  modalContainer: {
-    backgroundColor: '#FFF',
-    padding: 24,
-    borderRadius: 18,
-    margin: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1B4332',
-  },
-  closeModalButton: {
-    backgroundColor: '#2D6A4F',
-  },
-  closeModalButtonLabel: {
-    color: '#fff',
-    fontWeight: 'bold',
+  growthDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 8,
   },
 }); 
