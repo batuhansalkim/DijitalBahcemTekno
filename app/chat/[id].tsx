@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { View, StyleSheet, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
-import { Text, Avatar, Surface, IconButton, TextInput, Button } from 'react-native-paper';
+import { View, StyleSheet, FlatList, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { Text, Avatar, Surface, IconButton, TextInput, Button, Divider } from 'react-native-paper';
 import { useLocalSearchParams, router } from 'expo-router';
 
 interface Message {
@@ -74,146 +74,90 @@ export default function ChatDetailScreen() {
   };
 
   const renderMessage = ({ item }: { item: Message }) => (
-    <View style={[
-      styles.messageContainer,
-      item.sender === 'user' ? styles.userMessage : styles.farmerMessage
-    ]}>
-      <Surface style={[
-        styles.messageBubble,
-        item.sender === 'user' ? styles.userBubble : styles.farmerBubble
-      ]}>
-        <Text style={styles.messageText}>{item.text}</Text>
+    <View style={[styles.messageRow, item.sender === 'user' ? styles.userRow : styles.farmerRow]}>
+      {item.sender === 'farmer' && (
+        <Avatar.Image source={{ uri: FARMER_DATA.avatar }} size={32} style={styles.msgAvatar} />
+      )}
+      <View style={[styles.messageBubble, item.sender === 'user' ? styles.userBubble : styles.farmerBubble]}>
+        <Text style={[styles.messageText, item.sender === 'user' && { color: '#fff' }]}>{item.text}</Text>
         <Text style={styles.messageTime}>{item.timestamp}</Text>
-      </Surface>
+      </View>
+      {item.sender === 'user' && (
+        <Avatar.Icon icon="account" size={32} style={styles.msgAvatarUser} color="#2D6A4F" backgroundColor="#E8F5E9" />
+      )}
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <Surface style={styles.header} elevation={2}>
-        <IconButton
-          icon="arrow-left"
-          size={24}
-          onPress={() => router.back()}
-        />
-        <Avatar.Image
-          source={{ uri: FARMER_DATA.avatar }}
-          size={40}
-          style={styles.avatar}
-        />
-        <View style={styles.headerInfo}>
-          <Text style={styles.name}>{FARMER_DATA.name}</Text>
-          <Text style={styles.status}>Çevrimiçi</Text>
-        </View>
-        <IconButton
-          icon="information"
-          size={24}
-          onPress={() => router.push({
-            pathname: '/farmer/[id]' as const,
-            params: { id: FARMER_DATA.id }
-          })}
-        />
-      </Surface>
-
-      {/* Messages */}
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.messagesList}
-        onLayout={() => flatListRef.current?.scrollToEnd()}
-      />
-
-      {/* Input */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
-        <Surface style={styles.inputContainer} elevation={4}>
-          <TextInput
-            value={message}
-            onChangeText={setMessage}
-            placeholder="Mesajınızı yazın..."
-            style={styles.input}
-            right={
-              <TextInput.Icon
-                icon="send"
-                onPress={sendMessage}
-                disabled={!message.trim()}
-              />
-            }
-          />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.bg}>
+        {/* Header */}
+        <Surface style={styles.header} elevation={3}>
+          <IconButton icon="arrow-left" size={26} iconColor="#2D6A4F" onPress={() => router.back()} />
+          <Avatar.Image source={{ uri: FARMER_DATA.avatar }} size={44} style={styles.headerAvatar} />
+          <View style={styles.headerInfo}>
+            <Text style={styles.headerName}>{FARMER_DATA.name}</Text>
+            <Text style={styles.headerStatus}>Çevrimiçi</Text>
+          </View>
+          <IconButton icon="information" size={24} iconColor="#2D6A4F" onPress={() => router.push({ pathname: '/farmer/[id]' as const, params: { id: FARMER_DATA.id } })} />
         </Surface>
-      </KeyboardAvoidingView>
-    </View>
+        <Divider />
+        {/* Messages */}
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.messagesList}
+          onLayout={() => flatListRef.current?.scrollToEnd()}
+          showsVerticalScrollIndicator={false}
+        />
+        {/* Input */}
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
+          <Surface style={styles.inputBar} elevation={4}>
+            <TextInput
+              value={message}
+              onChangeText={setMessage}
+              placeholder="Mesajınızı yazın..."
+              style={styles.input}
+              underlineColor="transparent"
+              activeUnderlineColor="transparent"
+              right={<TextInput.Icon icon="send" onPress={sendMessage} disabled={!message.trim()} color={message.trim() ? '#2D6A4F' : '#BDBDBD'} />} />
+          </Surface>
+        </KeyboardAvoidingView>
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-  },
+  bg: { flex: 1, backgroundColor: '#F5F7F3' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 8,
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingHorizontal: 12,
     backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    zIndex: 10,
   },
-  avatar: {
-    marginHorizontal: 8,
-  },
-  headerInfo: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  status: {
-    fontSize: 12,
-    color: '#2E7D32',
-  },
-  messagesList: {
-    padding: 16,
-  },
-  messageContainer: {
-    marginVertical: 4,
-    maxWidth: '80%',
-  },
-  userMessage: {
-    alignSelf: 'flex-end',
-  },
-  farmerMessage: {
-    alignSelf: 'flex-start',
-  },
-  messageBubble: {
-    padding: 12,
-    borderRadius: 16,
-  },
-  userBubble: {
-    backgroundColor: '#2E7D32',
-  },
-  farmerBubble: {
-    backgroundColor: '#fff',
-  },
-  messageText: {
-    fontSize: 14,
-    marginBottom: 4,
-    color: '#fff',
-  },
-  messageTime: {
-    fontSize: 10,
-    color: '#666',
-    alignSelf: 'flex-end',
-  },
-  inputContainer: {
-    padding: 8,
-    backgroundColor: '#fff',
-  },
-  input: {
-    backgroundColor: '#fff',
-  },
+  headerAvatar: { marginHorizontal: 8, borderWidth: 2, borderColor: '#E8F5E9', backgroundColor: '#fff' },
+  headerInfo: { flex: 1 },
+  headerName: { fontSize: 18, fontWeight: 'bold', color: '#1B4332' },
+  headerStatus: { fontSize: 13, color: '#2D6A4F', fontWeight: '500' },
+  messagesList: { padding: 16, paddingBottom: 8 },
+  messageRow: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 10, maxWidth: '100%' },
+  userRow: { justifyContent: 'flex-end', alignSelf: 'flex-end' },
+  farmerRow: { justifyContent: 'flex-start', alignSelf: 'flex-start' },
+  messageBubble: { maxWidth: '80%', padding: 12, borderRadius: 18, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } },
+  userBubble: { backgroundColor: '#2D6A4F', borderTopRightRadius: 6 },
+  farmerBubble: { backgroundColor: '#fff', borderTopLeftRadius: 6, borderWidth: 1, borderColor: '#E0E0E0' },
+  messageText: { fontSize: 15, color: '#222' },
+  messageTime: { fontSize: 12, color: '#888', marginTop: 4, alignSelf: 'flex-end' },
+  msgAvatar: { marginRight: 8, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E8F5E9' },
+  msgAvatarUser: { marginLeft: 8, backgroundColor: '#E8F5E9' },
+  inputBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#E0E0E0', padding: 0, margin: 0, borderRadius: 0 },
+  input: { flex: 1, backgroundColor: '#F8F9FA', borderRadius: 16, margin: 8, paddingHorizontal: 16, fontSize: 15 },
 }); 

@@ -119,6 +119,10 @@ export default function RentScreen() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.headerRow}>
+        <IconButton icon="arrow-left" size={28} iconColor="#2D6A4F" onPress={() => router.back()} />
+        <Text style={styles.headerTitle}>Ağaç Kiralama</Text>
+      </View>
       <ScrollView style={styles.scrollView}>
         {/* Başlık */}
         <View style={styles.header}>
@@ -926,5 +930,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#1B4332',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingHorizontal: 8,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    zIndex: 10,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1B4332',
+    marginLeft: 8,
   },
 }); 

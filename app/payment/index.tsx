@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Alert, Modal } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, Modal, Image } from 'react-native';
 import { Text, Button, Card, RadioButton, TextInput, Surface, IconButton, Divider } from 'react-native-paper';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -46,29 +46,32 @@ export default function PaymentScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Ödeme Yöntemi Seçin</Text>
       <Divider style={{ marginVertical: 16 }} />
-      <RadioButton.Group onValueChange={val => setUseWallet(val === 'wallet')} value={useWallet ? 'wallet' : 'card'}>
-        <View style={styles.radioRow}>
-          <RadioButton.Android value="card" color="#2D6A4F" />
-          <Text style={styles.radioLabel}>Kredi/Banka Kartı ile Öde</Text>
+      <View style={styles.methodRow}>
+        <View style={[styles.methodBox, !useWallet && styles.selectedMethod]}>
+          <RadioButton.Android value="card" status={!useWallet ? 'checked' : 'unchecked'} onPress={() => setUseWallet(false)} color="#2D6A4F" />
+          <MaterialCommunityIcons name="credit-card" size={28} color={!useWallet ? '#2D6A4F' : '#888'} style={{ marginRight: 8 }} />
+          <Text style={styles.methodLabel} numberOfLines={1}>Kredi/Banka Kartı</Text>
         </View>
-        <View style={styles.radioRow}>
-          <RadioButton.Android value="wallet" color="#2D6A4F" />
-          <Text style={styles.radioLabel}>Dijital Cüzdan ile Öde <Text style={styles.walletDiscount}>%30 indirim</Text></Text>
+        <View style={[styles.methodBox, useWallet && styles.selectedMethod]}>
+          <RadioButton.Android value="wallet" status={useWallet ? 'checked' : 'unchecked'} onPress={() => setUseWallet(true)} color="#2D6A4F" />
+          <MaterialCommunityIcons name="wallet" size={28} color={useWallet ? '#2D6A4F' : '#888'} style={{ marginRight: 8 }} />
+          <Text style={styles.methodLabel} numberOfLines={1}>Dijital Cüzdan <Text style={styles.walletDiscount}>%30 indirim</Text></Text>
         </View>
-      </RadioButton.Group>
+      </View>
       {!useWallet && (
         <View style={styles.cardSection}>
           <Text style={styles.sectionTitle}>Kart Seçimi</Text>
           {cards.map(card => (
-            <Card key={card.id} style={[styles.card, selectedCard === card.id && styles.selectedCard]} onPress={() => setSelectedCard(card.id)}>
-              <Card.Content style={styles.cardContent}>
+            <View key={card.id} style={[styles.paymentCard, selectedCard === card.id && styles.selectedCard]}>
+              <View style={styles.cardContent}>
                 <MaterialCommunityIcons name={card.icon} size={28} color="#2D6A4F" />
                 <Text style={styles.cardText}>{card.name} •••• {card.last4}</Text>
                 {selectedCard === card.id && <MaterialCommunityIcons name="check-circle" size={24} color="#2D6A4F" />}
-              </Card.Content>
-            </Card>
+                <RadioButton.Android value={card.id} status={selectedCard === card.id ? 'checked' : 'unchecked'} onPress={() => setSelectedCard(card.id)} color="#2D6A4F" />
+              </View>
+            </View>
           ))}
-          <Button mode="outlined" icon="plus" onPress={() => setShowAddCard(true)} style={styles.addCardButton}>
+          <Button mode="outlined" icon="plus" onPress={() => setShowAddCard(true)} style={styles.addCardButton} labelStyle={styles.addCardButtonLabel}>
             Kart Ekle
           </Button>
         </View>
@@ -111,19 +114,22 @@ export default function PaymentScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24, backgroundColor: '#F5F7F3', flexGrow: 1 },
-  title: { fontSize: 22, fontWeight: 'bold', color: '#1B4332', marginBottom: 8 },
-  radioRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  radioLabel: { fontSize: 16, color: '#222', marginLeft: 8 },
-  walletDiscount: { color: '#2D6A4F', fontWeight: 'bold' },
-  cardSection: { marginVertical: 16 },
+  container: { padding: 16, backgroundColor: '#fff', flexGrow: 1, minHeight: '100%' },
+  title: { fontSize: 22, fontWeight: 'bold', color: '#1B4332', marginBottom: 8, textAlign: 'center' },
+  methodRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 18, gap: 8 },
+  methodBox: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', borderRadius: 8, padding: 8, marginHorizontal: 0, borderWidth: 1, borderColor: '#E0E0E0', minWidth: 0 },
+  selectedMethod: { borderColor: '#2D6A4F', backgroundColor: '#E8F5E9' },
+  methodLabel: { fontSize: 15, color: '#222', fontWeight: 'bold', flexShrink: 1 },
+  walletDiscount: { color: '#2D6A4F', fontWeight: 'bold', fontSize: 15 },
+  cardSection: { marginVertical: 12, width: '100%' },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#1B4332', marginBottom: 8 },
-  card: { marginBottom: 10, borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 12 },
-  selectedCard: { borderColor: '#2D6A4F', borderWidth: 2 },
-  cardContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  paymentCard: { marginBottom: 8, borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 8, backgroundColor: '#F8F9FA', width: '100%' },
+  selectedCard: { borderColor: '#2D6A4F', backgroundColor: '#E8F5E9' },
+  cardContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 8 },
   cardText: { fontSize: 16, color: '#222', marginLeft: 12, flex: 1 },
-  addCardButton: { marginTop: 8, borderColor: '#2D6A4F' },
-  payButton: { marginTop: 24, backgroundColor: '#2D6A4F', borderRadius: 12 },
+  addCardButton: { marginTop: 8, borderColor: '#2D6A4F', borderRadius: 8 },
+  addCardButtonLabel: { color: '#2D6A4F', fontWeight: 'bold' },
+  payButton: { marginTop: 20, backgroundColor: '#2D6A4F', borderRadius: 8 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
   modalContainer: { backgroundColor: '#fff', padding: 24, borderRadius: 20, width: '90%' },
   modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1B4332', marginBottom: 16 },

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, Image } from 'react-native';
-import { Text, Searchbar, Avatar, Surface, IconButton, Badge } from 'react-native-paper';
+import { View, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
+import { Text, Searchbar, Avatar, Surface, IconButton, Badge, Divider } from 'react-native-paper';
 import { router } from 'expo-router';
 
 // Chat tipi tanımı
@@ -64,69 +64,64 @@ export default function MessagesScreen() {
   );
 
   const renderChatItem = ({ item }: { item: Chat }) => (
-    <Surface
-      style={styles.chatCard}
-      elevation={1}
-      onTouchEnd={() => router.push({
-        pathname: '/chat/[id]' as const,
-        params: { id: item.id }
-      })}
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={() => router.push({ pathname: '/chat/[id]' as const, params: { id: item.id } })}
     >
-      <View style={styles.chatContent}>
-        <View style={styles.avatarContainer}>
-          <Avatar.Image source={{ uri: item.avatar }} size={50} />
-          {item.type === 'farmer' && (
-            <IconButton
-              icon="tree"
-              size={16}
-              style={styles.typeIcon}
-              iconColor="#2E7D32"
-            />
-          )}
-        </View>
-        
-        <View style={styles.messageInfo}>
-          <View style={styles.headerRow}>
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.timestamp}>{item.timestamp}</Text>
+      <Surface style={styles.chatCard} elevation={2}>
+        <View style={styles.chatContent}>
+          <View style={styles.avatarContainer}>
+            <Avatar.Image source={{ uri: item.avatar }} size={56} style={styles.avatar} />
+            {item.type === 'farmer' && (
+              <IconButton
+                icon="tree"
+                size={18}
+                style={styles.typeIcon}
+                iconColor="#2E7D32"
+              />
+            )}
           </View>
-          
-          {item.treeName && (
-            <Text style={styles.treeName}>{item.treeName}</Text>
+          <View style={styles.messageInfo}>
+            <View style={styles.headerRow}>
+              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.timestamp}>{item.timestamp}</Text>
+            </View>
+            {item.treeName && (
+              <Text style={styles.treeName}>{item.treeName}</Text>
+            )}
+            <Text style={styles.lastMessage} numberOfLines={1}>
+              {item.lastMessage}
+            </Text>
+          </View>
+          {item.unreadCount > 0 && (
+            <Badge style={styles.unreadBadge}>{item.unreadCount}</Badge>
           )}
-          
-          <Text style={styles.lastMessage} numberOfLines={1}>
-            {item.lastMessage}
-          </Text>
         </View>
-
-        {item.unreadCount > 0 && (
-          <Badge style={styles.unreadBadge}>
-            {item.unreadCount}
-          </Badge>
-        )}
-      </View>
-    </Surface>
+      </Surface>
+    </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Mesajlar</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.headerTitle}>Mesajlar</Text>
+        <IconButton icon="plus" size={26} iconColor="#2D6A4F" style={styles.newMsgBtn} onPress={() => {}} />
       </View>
-
+      <Divider style={{ marginBottom: 4 }} />
       <Searchbar
         placeholder="İsim veya ağaç adı ile ara..."
         value={searchQuery}
         onChangeText={setSearchQuery}
         style={styles.searchBar}
+        inputStyle={styles.searchInput}
+        iconColor="#2D6A4F"
       />
-
       <FlatList
         data={filteredChats}
         renderItem={renderChatItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.chatList}
+        ItemSeparatorComponent={() => <View style={{ height: 6 }} />}
       />
     </View>
   );
@@ -135,38 +130,71 @@ export default function MessagesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F5F7F3',
   },
-  header: {
-    padding: 20,
-    backgroundColor: '#2E7D32',
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 18,
+    paddingBottom: 8,
+    paddingHorizontal: 18,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    zIndex: 10,
   },
-  title: {
-    fontSize: 24,
+  headerTitle: {
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#1B4332',
+  },
+  newMsgBtn: {
+    backgroundColor: '#E8F5E9',
+    borderRadius: 16,
+    margin: 0,
   },
   searchBar: {
     margin: 16,
-    backgroundColor: '#fff',
+    marginBottom: 0,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    elevation: 0,
+  },
+  searchInput: {
+    fontSize: 15,
+    color: '#222',
   },
   chatList: {
-    padding: 16,
+    padding: 12,
+    paddingTop: 8,
   },
   chatCard: {
-    marginBottom: 12,
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
   },
   chatContent: {
     flexDirection: 'row',
-    padding: 12,
+    padding: 14,
     alignItems: 'center',
   },
   avatarContainer: {
     position: 'relative',
-    marginRight: 12,
+    marginRight: 14,
+  },
+  avatar: {
+    borderWidth: 2,
+    borderColor: '#E8F5E9',
+    backgroundColor: '#fff',
   },
   typeIcon: {
     position: 'absolute',
@@ -175,12 +203,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8F5E9',
     borderRadius: 12,
     margin: 0,
+    elevation: 0,
   },
   messageInfo: {
     flex: 1,
     marginRight: 8,
   },
-  headerRow: {
+  headerRowInner: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -189,21 +218,30 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#1B4332',
   },
   timestamp: {
     fontSize: 12,
-    color: '#666',
+    color: '#888',
+    marginLeft: 8,
   },
   treeName: {
-    fontSize: 12,
-    color: '#2E7D32',
-    marginBottom: 4,
+    fontSize: 13,
+    color: '#2D6A4F',
+    marginBottom: 2,
+    fontWeight: '500',
   },
   lastMessage: {
     fontSize: 14,
     color: '#666',
+    marginTop: 2,
   },
   unreadBadge: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#2D6A4F',
+    fontWeight: 'bold',
+    fontSize: 13,
+    alignSelf: 'flex-start',
+    marginLeft: 8,
+    marginTop: 2,
   },
 }); 

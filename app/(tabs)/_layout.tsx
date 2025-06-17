@@ -48,6 +48,15 @@ export default function TabLayout() {
             ),
           }}
         />
+        <Tabs.Screen
+          name="my-trees"
+          options={{
+            title: 'Ağaçlarım',
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons name="tree" size={24} color={color} />
+            ),
+          }}
+        />
       </Tabs>
     </SafeAreaView>
   );

@@ -102,7 +102,7 @@ export default function PaymentSuccessScreen() {
           <Button icon="download" mode="outlined" onPress={handlePrint} style={styles.actionButton}>PDF İndir</Button>
           <Button icon="share-variant" mode="outlined" onPress={handleShare} style={styles.actionButton}>Paylaş</Button>
         </View>
-        <Button mode="contained" style={styles.button} onPress={() => router.replace('/')}>Ana Sayfaya Dön</Button>
+        <Button mode="contained" style={styles.button} onPress={() => router.replace('/my-trees')}>Ana Sayfaya Dön</Button>
       </Surface>
     </View>
   );
