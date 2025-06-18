@@ -1,3 +1,24 @@
+<Tabs.Screen
+        name="gardens"
+        options={{
+          title: 'Bahçelerim',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="flower" size={size || 24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="trees"
+        options={{
+          title: 'Ağaçlarım',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="tree" size={size || 24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen name="trees/add" options={{ href: null }} />
+      <Tabs.Screen name="gardens/add" options={{ href: null }} />
+
 # React Native Mobil Uygulama Projesi: Ağaç Kiralama ve Takip Sistemi
 
 
