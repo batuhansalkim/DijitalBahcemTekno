@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Image, Dimensions } from 'react-native';
-import { Text, Surface, Button, Chip, Divider } from 'react-native-paper';
+import { Text, Surface, Button, Chip, Divider, IconButton } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
@@ -48,6 +48,12 @@ export default function FarmerGardenDetailScreen() {
         {/* Başlık ve galeri */}
         <Surface style={styles.header} elevation={4}>
           <View style={styles.headerContent}>
+            <IconButton 
+              icon="arrow-left" 
+              onPress={() => router.push('/farmer/gardens' as any)} 
+              style={styles.backBtn}
+              iconColor="#fff"
+            />
             <MaterialCommunityIcons name="flower" size={28} color="#fff" style={{ marginRight: 8 }} />
             <Text style={styles.headerTitle}>{garden.name}</Text>
           </View>
@@ -155,9 +161,10 @@ export default function FarmerGardenDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F7F3' },
   header: { backgroundColor: '#2E7D32', paddingTop: 40, paddingBottom: 20, paddingHorizontal: 16, borderBottomLeftRadius: 24, borderBottomRightRadius: 24, marginBottom: 8 },
-  headerContent: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  headerContent: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, justifyContent: 'center' },
   headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#fff' },
   headerSubtitle: { color: '#fff', opacity: 0.9, fontSize: 14, textAlign: 'center' },
+  backBtn: { position: 'absolute', left: 0, top: 0, zIndex: 2, backgroundColor: 'transparent' },
   gallery: { height: 180, marginBottom: 12 },
   galleryImage: { width: width - 32, height: 180, borderRadius: 16, marginRight: 12 },
   statsRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginBottom: 12, paddingHorizontal: 8 },

@@ -190,6 +190,7 @@ export default function LoginScreen() {
               contentStyle={styles.buttonContent}
               loading={loading}
               icon="login"
+              textColor="#ffffff"
             >
               {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
             </Button>

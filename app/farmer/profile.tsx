@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Dimensions, Alert } from 'react-native';
-import { Text, Surface, Button, Avatar, List, Divider, Switch, Chip, Card } from 'react-native-paper';
+import { Text, Surface, Button, Avatar, List, Divider, Switch, Chip, Card, IconButton } from 'react-native-paper';
 import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
@@ -34,28 +35,6 @@ const FARMER_DATA = {
   }
 };
 
-// Örnek bahçe verileri
-const GARDEN_DATA = [
-  {
-    id: '1',
-    name: 'Ayvalık Zeytinliği',
-    location: 'Ayvalık, Balıkesir',
-    treeCount: 150,
-    area: '25 dönüm',
-    treeTypes: ['Zeytin'],
-    image: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578',
-  },
-  {
-    id: '2',
-    name: 'Finike Portakal Bahçesi',
-    location: 'Finike, Antalya',
-    treeCount: 100,
-    area: '15 dönüm',
-    treeTypes: ['Portakal', 'Mandalina'],
-    image: 'https://images.unsplash.com/photo-1590086783191-a0694c7d1e6e',
-  }
-];
-
 export default function FarmerProfileScreen() {
   const [walletConnected, setWalletConnected] = useState(false);
 
@@ -80,34 +59,47 @@ export default function FarmerProfileScreen() {
   };
 
   return (
-    <ScrollView style={styles.bg} contentContainerStyle={{ paddingBottom: 32 }}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Header with gradient */}
+      <LinearGradient
+        colors={['#2E7D32', '#388E3C']}
+        style={styles.headerGradient}
+      >
+        <View style={styles.headerContent}>
+          <View style={styles.headerInfo}>
+            <Text style={styles.headerTitle}>Profil</Text>
+            <Text style={styles.headerSubtitle}>Çiftçi Hesabı</Text>
+          </View>
+          <IconButton
+            icon="account-edit"
+            size={24}
+            iconColor="#fff"
+            style={styles.editButton}
+            onPress={() => Alert.alert('Profil Düzenle', 'Profil düzenleme sayfası açılacak')}
+          />
+        </View>
+      </LinearGradient>
+
       {/* Profile Card */}
-      <Surface style={styles.profileCard} elevation={4}>
-        <View style={styles.profileTopRow}>
-          <Avatar.Image size={90} source={{ uri: FARMER_DATA.avatar }} style={styles.avatar} />
+      <Surface style={styles.profileCard} elevation={3}>
+        <View style={styles.profileHeader}>
+          <Avatar.Image 
+            size={100} 
+            source={{ uri: FARMER_DATA.avatar }} 
+            style={styles.avatar} 
+          />
           <View style={styles.profileInfo}>
             <Text style={styles.profileName}>{FARMER_DATA.name}</Text>
             <Text style={styles.profileEmail}>{FARMER_DATA.email}</Text>
-            <Text style={styles.profileLocation}>{FARMER_DATA.location}</Text>
+            <View style={styles.locationContainer}>
+              <Avatar.Icon icon="map-marker" size={16} style={styles.locationIcon} color="#2E7D32" />
+              <Text style={styles.profileLocation}>{FARMER_DATA.location}</Text>
+            </View>
             <View style={styles.ratingContainer}>
               <Avatar.Icon icon="star" size={16} style={styles.ratingIcon} color="#FFD700" />
               <Text style={styles.rating}>{FARMER_DATA.rating}</Text>
               <Text style={styles.reviewCount}>({FARMER_DATA.reviewCount} değerlendirme)</Text>
             </View>
-            {walletConnected && (
-              <>
-                <Chip 
-                  icon="wallet" 
-                  style={styles.walletChip}
-                  textStyle={styles.walletChipText}
-                >
-                  Cüzdan Bağlı
-                </Chip>
-                <Text style={styles.walletAddress}>
-                  {FARMER_DATA.walletAddress.substring(0, 10)}...{FARMER_DATA.walletAddress.substring(38)}
-                </Text>
-              </>
-            )}
           </View>
         </View>
         
@@ -115,192 +107,184 @@ export default function FarmerProfileScreen() {
 
         <View style={styles.specialtiesContainer}>
           {FARMER_DATA.specialties.map((specialty, index) => (
-            <Chip key={index} style={styles.specialtyChip}>{specialty}</Chip>
+            <Chip key={index} style={styles.specialtyChip} textStyle={styles.specialtyText}>
+              {specialty}
+            </Chip>
           ))}
         </View>
 
-        <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Avatar.Icon icon="tree" size={32} style={styles.statIcon} color="#2D6A4F" />
-            <Text style={styles.statValue}>{FARMER_DATA.activeRentals}</Text>
-            <Text style={styles.statLabel}>Aktif Kiralama</Text>
+        {walletConnected && (
+          <View style={styles.walletSection}>
+            <Chip 
+              icon="wallet" 
+              style={styles.walletChip}
+              textStyle={styles.walletChipText}
+            >
+              Cüzdan Bağlı
+            </Chip>
+            <Text style={styles.walletAddress}>
+              {FARMER_DATA.walletAddress.substring(0, 10)}...{FARMER_DATA.walletAddress.substring(38)}
+            </Text>
           </View>
-          <View style={styles.statBox}>
-            <Avatar.Icon icon="fruit-cherries" size={32} style={styles.statIcon} color="#2D6A4F" />
-            <Text style={styles.statValue}>{FARMER_DATA.totalHarvest}</Text>
-            <Text style={styles.statLabel}>Toplam Hasat</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Avatar.Icon icon="calendar" size={32} style={styles.statIcon} color="#2D6A4F" />
-            <Text style={styles.statValue}>{FARMER_DATA.experience}</Text>
-            <Text style={styles.statLabel}>Deneyim</Text>
-          </View>
-        </View>
+        )}
       </Surface>
 
-      {/* İstatistikler */}
-      <Surface style={styles.section} elevation={2}>
-        <List.Section>
-          <List.Subheader style={styles.sectionHeader}>Detaylı İstatistikler</List.Subheader>
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{FARMER_DATA.statistics.activeRentals}</Text>
+      {/* Statistics Cards */}
+      <View style={styles.statsContainer}>
+        <Surface style={styles.statCard} elevation={2}>
+          <View style={styles.statContent}>
+            <Avatar.Icon icon="tree" size={40} style={styles.statIcon} color="#2E7D32" />
+            <View style={styles.statText}>
+              <Text style={styles.statValue}>{FARMER_DATA.activeRentals}</Text>
               <Text style={styles.statLabel}>Aktif Kiralama</Text>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{FARMER_DATA.statistics.totalHarvest}</Text>
+          </View>
+        </Surface>
+
+        <Surface style={styles.statCard} elevation={2}>
+          <View style={styles.statContent}>
+            <Avatar.Icon icon="fruit-cherries" size={40} style={styles.statIcon} color="#2E7D32" />
+            <View style={styles.statText}>
+              <Text style={styles.statValue}>{FARMER_DATA.totalHarvest}</Text>
               <Text style={styles.statLabel}>Toplam Hasat</Text>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{FARMER_DATA.treeCount}</Text>
-              <Text style={styles.statLabel}>Ağaç Sayısı</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>%{FARMER_DATA.statistics.satisfactionRate}</Text>
-              <Text style={styles.statLabel}>Memnuniyet</Text>
+          </View>
+        </Surface>
+
+        <Surface style={styles.statCard} elevation={2}>
+          <View style={styles.statContent}>
+            <Avatar.Icon icon="calendar" size={40} style={styles.statIcon} color="#2E7D32" />
+            <View style={styles.statText}>
+              <Text style={styles.statValue}>{FARMER_DATA.experience}</Text>
+              <Text style={styles.statLabel}>Deneyim</Text>
             </View>
           </View>
-        </List.Section>
-      </Surface>
+        </Surface>
+      </View>
 
-      {/* Sertifikalar */}
+      {/* Detailed Statistics */}
       <Surface style={styles.section} elevation={2}>
-        <List.Section>
-          <List.Subheader style={styles.sectionHeader}>Sertifikalar</List.Subheader>
-          <View style={styles.certificatesContainer}>
-            {FARMER_DATA.certifications.map((cert, index) => (
-              <Chip key={index} style={styles.certChip} icon="check-circle">
-                {cert}
-              </Chip>
-            ))}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Detaylı İstatistikler</Text>
+        </View>
+        <View style={styles.statsGrid}>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{FARMER_DATA.statistics.activeRentals}</Text>
+            <Text style={styles.statLabel}>Aktif Kiralama</Text>
           </View>
-        </List.Section>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{FARMER_DATA.statistics.totalHarvest}</Text>
+            <Text style={styles.statLabel}>Toplam Hasat</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{FARMER_DATA.treeCount}</Text>
+            <Text style={styles.statLabel}>Ağaç Sayısı</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>%{FARMER_DATA.statistics.satisfactionRate}</Text>
+            <Text style={styles.statLabel}>Memnuniyet</Text>
+          </View>
+        </View>
       </Surface>
 
-      {/* Bahçeler */}
+      {/* Certifications */}
       <Surface style={styles.section} elevation={2}>
-        <List.Section>
-          <List.Subheader style={styles.sectionHeader}>Bahçelerim</List.Subheader>
-          {GARDEN_DATA.map(garden => (
-            <Card
-              key={garden.id}
-              style={styles.gardenCard}
-              onPress={() => router.push({
-                pathname: '/garden/[id]' as const,
-                params: { id: garden.id }
-              })}
-            >
-              <Card.Cover source={{ uri: garden.image }} style={styles.gardenImage} />
-              <Card.Content style={styles.gardenContent}>
-                <Text style={styles.gardenName}>{garden.name}</Text>
-                <Text style={styles.gardenLocation}>{garden.location}</Text>
-                <View style={styles.gardenDetails}>
-                  <Text style={styles.gardenStat}>{garden.treeCount} ağaç</Text>
-                  <Text style={styles.gardenStat}>{garden.area}</Text>
-                </View>
-                <View style={styles.treeTypesContainer}>
-                  {garden.treeTypes.map((type, index) => (
-                    <Chip key={index} style={styles.treeTypeChip}>{type}</Chip>
-                  ))}
-                </View>
-              </Card.Content>
-            </Card>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Sertifikalar</Text>
+        </View>
+        <View style={styles.certificatesContainer}>
+          {FARMER_DATA.certifications.map((cert, index) => (
+            <Chip key={index} style={styles.certChip} icon="check-circle" textStyle={styles.certText}>
+              {cert}
+            </Chip>
           ))}
-        </List.Section>
+        </View>
       </Surface>
 
       {/* Digital Wallet Section */}
       <Surface style={styles.section} elevation={2}>
-        <List.Section>
-          <List.Subheader style={styles.sectionHeader}>Dijital Cüzdan</List.Subheader>
-          <List.Item
-            title="Dijital Cüzdan Bağla"
-            description={walletConnected ? "Cüzdanınız bağlı - %30 kripto indirimi aktif" : "WalletConnect ile cüzdanınızı bağlayın"}
-            left={(props) => <List.Icon {...props} icon="wallet" color="#2D6A4F" />}
-            right={() => (
-              <Switch
-                value={walletConnected}
-                onValueChange={handleWalletConnection}
-                color="#2D6A4F"
-              />
-            )}
-            style={styles.listItem}
-            titleStyle={styles.listItemTitle}
-          />
-          {walletConnected && (
-            <>
-              <List.Item
-                title="NFT Koleksiyonum"
-                description={`${FARMER_DATA.totalNFTs} ağaç NFT'si`}
-                left={(props) => <List.Icon {...props} icon="nfc" color="#2D6A4F" />}
-                onPress={() => router.push('/nft-collection')}
-                style={styles.listItem}
-                titleStyle={styles.listItemTitle}
-              />
-              <List.Item
-                title="Blockchain İşlemleri"
-                description={`${FARMER_DATA.blockchainTransactions} işlem`}
-                left={(props) => <List.Icon {...props} icon="block-helper" color="#2D6A4F" />}
-                onPress={() => router.push('/blockchain-transactions')}
-                style={styles.listItem}
-                titleStyle={styles.listItemTitle}
-              />
-            </>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Dijital Cüzdan</Text>
+        </View>
+        <List.Item
+          title="Dijital Cüzdan Bağla"
+          description={walletConnected ? "Cüzdanınız bağlı - %30 kripto indirimi aktif" : "WalletConnect ile cüzdanınızı bağlayın"}
+          left={(props) => <List.Icon {...props} icon="wallet" color="#2E7D32" />}
+          right={() => (
+            <Switch
+              value={walletConnected}
+              onValueChange={handleWalletConnection}
+              color="#2E7D32"
+            />
           )}
-        </List.Section>
+          style={styles.listItem}
+          titleStyle={styles.listItemTitle}
+          descriptionStyle={styles.listItemDescription}
+        />
+        {walletConnected && (
+          <>
+            <List.Item
+              title="NFT Koleksiyonum"
+              description={`${FARMER_DATA.totalNFTs} ağaç NFT'si`}
+              left={(props) => <List.Icon {...props} icon="nfc" color="#2E7D32" />}
+              onPress={() => router.push('/nft-collection')}
+              style={styles.listItem}
+              titleStyle={styles.listItemTitle}
+              descriptionStyle={styles.listItemDescription}
+            />
+            <List.Item
+              title="Blockchain İşlemleri"
+              description={`${FARMER_DATA.blockchainTransactions} işlem`}
+              left={(props) => <List.Icon {...props} icon="block-helper" color="#2E7D32" />}
+              onPress={() => router.push('/blockchain-transactions')}
+              style={styles.listItem}
+              titleStyle={styles.listItemTitle}
+              descriptionStyle={styles.listItemDescription}
+            />
+          </>
+        )}
       </Surface>
 
       {/* Account Settings Section */}
       <Surface style={styles.section} elevation={2}>
-        <List.Section>
-          <List.Subheader style={styles.sectionHeader}>Hesap Ayarları</List.Subheader>
-          <List.Item
-            title="Profili Düzenle"
-            left={(props) => <List.Icon {...props} icon="account-edit" color="#2D6A4F" />}
-            onPress={() => Alert.alert('Profil Düzenle', 'Profil düzenleme sayfası açılacak')}
-            style={styles.listItem}
-            titleStyle={styles.listItemTitle}
-          />
-          <List.Item
-            title="Bildirim Ayarları"
-            left={(props) => <List.Icon {...props} icon="bell-outline" color="#2D6A4F" />}
-            onPress={() => Alert.alert('Bildirimler', 'Bildirim ayarları sayfası açılacak')}
-            style={styles.listItem}
-            titleStyle={styles.listItemTitle}
-          />
-          <List.Item
-            title="Ödeme Yöntemleri"
-            left={(props) => <List.Icon {...props} icon="credit-card" color="#2D6A4F" />}
-            onPress={() => Alert.alert('Ödeme Yöntemleri', 'Ödeme yöntemleri sayfası açılacak')}
-            style={styles.listItem}
-            titleStyle={styles.listItemTitle}
-          />
-        </List.Section>
-        <Divider style={{ marginVertical: 4 }} />
-        <List.Section>
-          <List.Subheader style={styles.sectionHeader}>Uygulama</List.Subheader>
-          <List.Item
-            title="Dil Seçimi"
-            left={(props) => <List.Icon {...props} icon="translate" color="#2D6A4F" />}
-            onPress={() => Alert.alert('Dil Seçimi', 'Dil seçimi sayfası açılacak')}
-            style={styles.listItem}
-            titleStyle={styles.listItemTitle}
-          />
-          <List.Item
-            title="Yardım ve Destek"
-            left={(props) => <List.Icon {...props} icon="help-circle" color="#2D6A4F" />}
-            onPress={() => Alert.alert('Yardım', 'Yardım ve destek sayfası açılacak')}
-            style={styles.listItem}
-            titleStyle={styles.listItemTitle}
-          />
-          <List.Item
-            title="Hakkında"
-            left={(props) => <List.Icon {...props} icon="information" color="#2D6A4F" />}
-            onPress={() => Alert.alert('Hakkında', 'Uygulama hakkında bilgiler')}
-            style={styles.listItem}
-            titleStyle={styles.listItemTitle}
-          />
-        </List.Section>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Hesap Ayarları</Text>
+        </View>
+        <List.Item
+          title="Bildirim Ayarları"
+          left={(props) => <List.Icon {...props} icon="bell-outline" color="#2E7D32" />}
+          onPress={() => Alert.alert('Bildirimler', 'Bildirim ayarları sayfası açılacak')}
+          style={styles.listItem}
+          titleStyle={styles.listItemTitle}
+        />
+        <List.Item
+          title="Ödeme Yöntemleri"
+          left={(props) => <List.Icon {...props} icon="credit-card" color="#2E7D32" />}
+          onPress={() => Alert.alert('Ödeme Yöntemleri', 'Ödeme yöntemleri sayfası açılacak')}
+          style={styles.listItem}
+          titleStyle={styles.listItemTitle}
+        />
+        <List.Item
+          title="Dil Seçimi"
+          left={(props) => <List.Icon {...props} icon="translate" color="#2E7D32" />}
+          onPress={() => Alert.alert('Dil Seçimi', 'Dil seçimi sayfası açılacak')}
+          style={styles.listItem}
+          titleStyle={styles.listItemTitle}
+        />
+        <List.Item
+          title="Yardım ve Destek"
+          left={(props) => <List.Icon {...props} icon="help-circle" color="#2E7D32" />}
+          onPress={() => Alert.alert('Yardım', 'Yardım ve destek sayfası açılacak')}
+          style={styles.listItem}
+          titleStyle={styles.listItemTitle}
+        />
+        <List.Item
+          title="Hakkında"
+          left={(props) => <List.Icon {...props} icon="information" color="#2E7D32" />}
+          onPress={() => Alert.alert('Hakkında', 'Uygulama hakkında bilgiler')}
+          style={styles.listItem}
+          titleStyle={styles.listItemTitle}
+        />
       </Surface>
 
       <Button
@@ -308,7 +292,7 @@ export default function FarmerProfileScreen() {
         onPress={handleLogout}
         style={styles.logoutButton}
         textColor="#B00020"
-        labelStyle={{ fontWeight: 'bold', fontSize: 16 }}
+        labelStyle={styles.logoutButtonLabel}
       >
         Çıkış Yap
       </Button>
@@ -317,28 +301,64 @@ export default function FarmerProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  bg: { flex: 1, backgroundColor: '#F5F7F3' },
-  profileCard: {
-    margin: 16,
-    marginBottom: 0,
-    padding: 24,
-    borderRadius: 20,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
+  container: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
   },
-  profileTopRow: {
+  headerGradient: {
+    paddingTop: 50,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '100%',
-    marginBottom: 18,
+    justifyContent: 'space-between',
+  },
+  headerInfo: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#E8F5E9',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  editButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 20,
+    margin: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  profileCard: {
+    margin: 20,
+    marginTop: -10,
+    padding: 24,
+    borderRadius: 24,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
   },
   avatar: {
-    marginRight: 18,
-    borderWidth: 2,
+    marginRight: 20,
+    borderWidth: 4,
     borderColor: '#E8F5E9',
     backgroundColor: '#fff',
   },
@@ -346,199 +366,201 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileName: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#1B4332',
+    color: '#1B5E20',
+    marginBottom: 4,
   },
   profileEmail: {
     color: '#666',
-    marginTop: 4,
-    fontSize: 15,
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  locationIcon: {
+    backgroundColor: '#E8F5E9',
+    marginRight: 6,
   },
   profileLocation: {
-    color: '#2D6A4F',
-    marginTop: 2,
-    fontSize: 14,
-    fontWeight: '500',
+    color: '#2E7D32',
+    fontSize: 15,
+    fontWeight: '600',
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
   },
   ratingIcon: {
     backgroundColor: 'transparent',
-    marginRight: 4,
+    marginRight: 6,
   },
   rating: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginRight: 4,
+    color: '#1B5E20',
+    marginRight: 6,
   },
   reviewCount: {
     fontSize: 14,
     color: '#666',
   },
   about: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 22,
     color: '#444',
-    marginBottom: 16,
-    textAlign: 'center',
+    marginBottom: 20,
+    textAlign: 'left',
   },
   specialtiesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   specialtyChip: {
-    marginRight: 8,
+    marginRight: 10,
     marginBottom: 8,
     backgroundColor: '#E8F5E9',
+    borderRadius: 16,
+  },
+  specialtyText: {
+    color: '#2E7D32',
+    fontWeight: '600',
+  },
+  walletSection: {
+    alignItems: 'flex-start',
   },
   walletChip: {
     backgroundColor: '#E8F5E9',
-    marginTop: 8,
-    alignSelf: 'flex-start',
+    marginBottom: 8,
   },
   walletChipText: {
-    color: '#2D6A4F',
+    color: '#2E7D32',
     fontWeight: '600',
   },
   walletAddress: {
     fontSize: 12,
     color: '#666',
-    marginTop: 4,
     fontFamily: 'monospace',
   },
-  statsRow: {
+  statsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginTop: 8,
+    paddingHorizontal: 20,
+    marginBottom: 20,
   },
-  statBox: {
+  statCard: {
     flex: 1,
+    marginHorizontal: 4,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  statContent: {
+    padding: 16,
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 14,
-    marginHorizontal: 6,
-    paddingVertical: 14,
-    paddingHorizontal: 4,
-    elevation: 0,
   },
   statIcon: {
     backgroundColor: '#E8F5E9',
-    marginBottom: 4,
+    marginBottom: 8,
+  },
+  statText: {
+    alignItems: 'center',
   },
   statValue: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#1B4332',
-    marginBottom: 2,
+    color: '#1B5E20',
+    marginBottom: 4,
   },
   statLabel: {
-    fontSize: 13,
-    color: '#2D6A4F',
-    fontWeight: '500',
+    fontSize: 12,
+    color: '#2E7D32',
+    fontWeight: '600',
+    textAlign: 'center',
   },
   section: {
-    margin: 16,
-    marginTop: 18,
-    borderRadius: 18,
+    margin: 20,
+    marginTop: 0,
+    borderRadius: 20,
     backgroundColor: '#fff',
-    paddingVertical: 8,
-    paddingHorizontal: 0,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
   sectionHeader: {
-    fontSize: 15,
-    color: '#1B4332',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    color: '#1B5E20',
     fontWeight: 'bold',
-    marginBottom: 2,
-    marginTop: 8,
-    marginLeft: 8,
   },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    padding: 20,
   },
   statItem: {
     width: '48%',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F8F9FA',
     padding: 16,
-    borderRadius: 8,
-    marginBottom: 16,
+    borderRadius: 12,
+    marginBottom: 12,
     alignItems: 'center',
+    marginHorizontal: '1%',
   },
   certificatesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 16,
+    padding: 20,
   },
   certChip: {
-    marginRight: 8,
+    marginRight: 10,
     marginBottom: 8,
     backgroundColor: '#E8F5E9',
+    borderRadius: 16,
   },
-  gardenCard: {
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  gardenImage: {
-    height: 150,
-  },
-  gardenContent: {
-    padding: 16,
-  },
-  gardenName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  gardenLocation: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  gardenDetails: {
-    flexDirection: 'row',
-    marginTop: 8,
-  },
-  gardenStat: {
-    fontSize: 14,
+  certText: {
     color: '#2E7D32',
-    marginRight: 16,
-  },
-  treeTypesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 8,
-  },
-  treeTypeChip: {
-    marginRight: 8,
-    marginBottom: 8,
-    backgroundColor: '#E8F5E9',
+    fontWeight: '600',
   },
   listItem: {
     borderRadius: 12,
-    marginHorizontal: 8,
-    marginVertical: 2,
-    paddingVertical: 2,
+    marginHorizontal: 16,
+    marginVertical: 4,
+    paddingVertical: 4,
   },
   listItemTitle: {
-    fontSize: 15,
-    color: '#222',
-    fontWeight: '500',
+    fontSize: 16,
+    color: '#1B5E20',
+    fontWeight: '600',
+  },
+  listItemDescription: {
+    fontSize: 14,
+    color: '#666',
   },
   logoutButton: {
     margin: 20,
     borderColor: '#B00020',
-    borderRadius: 12,
-    paddingVertical: 6,
+    borderRadius: 16,
+    paddingVertical: 8,
+    borderWidth: 2,
   },
-}); 
+  logoutButtonLabel: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+});

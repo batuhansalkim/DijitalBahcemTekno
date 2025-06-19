@@ -106,7 +106,7 @@ export default function TreeListScreen() {
         </View>
       </Surface>
 
-      <View style={styles.filters}>
+      <View style={styles.searchContainer}>
         <Searchbar
           placeholder="Ağaç ara..."
           onChangeText={setSearchQuery}
@@ -115,29 +115,31 @@ export default function TreeListScreen() {
           inputStyle={{ fontSize: 16, color: '#000' }}
           placeholderTextColor="#666"
         />
-
-        <View style={styles.filterContainer}>
-          {STATUS_FILTERS.map((filter) => (
-            <TouchableOpacity
-              key={filter.value}
-              style={[
-                styles.filterButton,
-                statusFilter === filter.value && styles.filterButtonActive
-              ]}
-              onPress={() => setStatusFilter(filter.value)}
-            >
-              <Text style={[
-                styles.filterButtonText,
-                statusFilter === filter.value && styles.filterButtonTextActive
-              ]}>
-                {filter.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
       </View>
 
       <ScrollView style={styles.treeList} showsVerticalScrollIndicator={false}>
+        <View style={styles.filters}>
+          <View style={styles.filterContainer}>
+            {STATUS_FILTERS.map((filter) => (
+              <TouchableOpacity
+                key={filter.value}
+                style={[
+                  styles.filterButton,
+                  statusFilter === filter.value && styles.filterButtonActive
+                ]}
+                onPress={() => setStatusFilter(filter.value)}
+              >
+                <Text style={[
+                  styles.filterButtonText,
+                  statusFilter === filter.value && styles.filterButtonTextActive
+                ]}>
+                  {filter.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
         {filteredTrees.map((tree) => (
           <Surface key={tree.id} style={styles.card} elevation={4}>
             <Image source={{ uri: tree.imageUrl }} style={styles.cardImage} resizeMode="cover" />
@@ -263,9 +265,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 2,
   },
-  filters: {
+  searchContainer: {
     padding: 16,
-    gap: 12,
+    paddingBottom: 8,
   },
   searchbar: {
     backgroundColor: '#fff',
@@ -278,16 +280,13 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#000',
   },
-  statusFilter: {
-    backgroundColor: '#2E7D32',
-    borderRadius: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    padding: 8,
-    marginHorizontal: 4,
+  treeList: {
+    flex: 1,
+  },
+  filters: {
+    padding: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   filterContainer: {
     flexDirection: 'row',
@@ -299,7 +298,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    marginHorizontal: -4,
   },
   filterButton: {
     flex: 1,
@@ -324,10 +322,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
-  treeList: {
-    padding: 16,
-  },
   card: {
+    marginHorizontal: 16,
     marginBottom: 20,
     borderRadius: 20,
     overflow: 'hidden',
