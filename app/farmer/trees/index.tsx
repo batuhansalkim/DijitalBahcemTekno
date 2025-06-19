@@ -200,7 +200,7 @@ export default function TreeListScreen() {
               <View style={styles.cardActions}>
                 <Button
                   mode="outlined"
-                  onPress={() => router.push(`/tree/${tree.id}`)}
+                  onPress={() => router.push(`/farmer/trees/${tree.id}` as any)}
                   style={styles.actionBtn}
                   textColor="#2E7D32"
                 >
@@ -208,7 +208,7 @@ export default function TreeListScreen() {
                 </Button>
                 <Button
                   mode="contained"
-                  onPress={() => router.push(`/tree/${tree.id}/edit`)}
+                  onPress={() => router.push(`/farmer/trees/${tree.id}/edit` as any)}
                   style={styles.actionBtnFilled}
                   buttonColor="#2E7D32"
                 >

@@ -1,30 +1,60 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Image, StatusBar, TouchableOpacity } from 'react-native';
-import { Text, TextInput, Button, Surface, IconButton, Chip, Divider } from 'react-native-paper';
-import { router } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
+import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { Text, TextInput, Button, Surface, IconButton, Chip } from 'react-native-paper';
+import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 
-interface TreeForm {
-  name: string;
-  type: string;
-  age: string;
-  health: string;
-  status: string;
-  garden: string;
-  expectedHarvest: string;
-  harvestMonth: string;
-  rentalPrice: string;
-  description: string;
-  story: string;
-  rfidCode: string;
-  location: {
-    latitude: string;
-    longitude: string;
-  };
-  treeId: string;
-  images: string[];
-}
+// Örnek ağaç verileri (gerçek uygulamada API'den gelecek)
+const TREES_DATA = [
+  {
+    id: '1',
+    name: 'Zeytin Ağacı #123',
+    type: 'Zeytin',
+    age: 15,
+    health: 95,
+    status: 'available',
+    garden: 'Zeytinlik Bahçesi',
+    lastHarvest: '120 kg',
+    nextHarvest: '2024 Kasım',
+    rentalPrice: '2.500',
+    expectedHarvest: '150 kg',
+    harvestMonth: 'Kasım',
+    description: 'Bu zeytin ağacı, dedemizin 2008\'de diktiği ilk ağaçlardan. Her yıl kaliteli zeytin veriyor.',
+    story: 'Bu 15 yaşındaki zeytin ağacımız, dedemizin 2008\'de diktiği ilk ağaçlardan. Her yıl 120kg zeytin veriyor ve ailemizin gururu. "Barış Ağacı" olarak biliniyor çünkü komşularımızla birlikte hasat ediyoruz.',
+    imageUrl: 'https://images.unsplash.com/photo-1445264718234-a623be589d37?w=400&h=300&fit=crop',
+    rfidCode: 'RFID-123456',
+    location: { latitude: '40.7128', longitude: '-74.0060' },
+    treeId: 'TR-123456-ABC',
+    images: [
+      'https://images.unsplash.com/photo-1445264718234-a623be589d37?w=400&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1590086783191-a0694c7d1e6e?w=400&h=300&fit=crop',
+    ],
+  },
+  {
+    id: '2',
+    name: 'Portakal Ağacı #45',
+    type: 'Portakal',
+    age: 8,
+    health: 88,
+    status: 'rented',
+    garden: 'Karışık Meyve Bahçesi',
+    lastHarvest: '85 kg',
+    nextHarvest: '2024 Mart',
+    rentalPrice: '1.800',
+    expectedHarvest: '100 kg',
+    harvestMonth: 'Mart',
+    description: 'Çocukluğumda diktiğim ilk ağaç. Her yıl mis kokulu portakallar veriyor.',
+    story: 'Bu portakal ağacımız, çocukluğumda diktiğim ilk ağaç. 8 yaşında babamla birlikte dikmiştik. Şimdi 8 yaşında ve her yıl mis kokulu portakallar veriyor. "Çocukluk Ağacı" olarak anılıyor.',
+    imageUrl: 'https://images.unsplash.com/photo-1590086783191-a0694c7d1e6e?w=400&h=300&fit=crop',
+    rfidCode: 'RFID-789012',
+    location: { latitude: '40.7589', longitude: '-73.9851' },
+    treeId: 'TR-789012-DEF',
+    images: [
+      'https://images.unsplash.com/photo-1590086783191-a0694c7d1e6e?w=400&h=300&fit=crop',
+    ],
+  },
+];
 
 const TREE_TYPES = [
   { value: 'zeytin', label: 'Zeytin', icon: '🌳' },
@@ -56,66 +86,37 @@ const HARVEST_MONTHS = [
   { value: 'aralik', label: 'Aralık' },
 ];
 
-// Örnek bahçe verileri
 const GARDENS = [
   { id: '1', name: 'Zeytinlik Bahçesi' },
   { id: '2', name: 'Karışık Meyve Bahçesi' },
   { id: '3', name: 'Fındık Bahçesi' },
 ];
 
-export default function AddTreeScreen() {
-  const [form, setForm] = useState<TreeForm>({
-    name: '',
-    type: TREE_TYPES[0].value,
-    age: '',
-    health: '100',
-    status: TREE_STATUS[0].value,
-    garden: '',
-    expectedHarvest: '',
-    harvestMonth: HARVEST_MONTHS[0].value,
-    rentalPrice: '',
-    description: '',
-    story: '',
-    rfidCode: '',
+export default function EditTreeScreen() {
+  const { id } = useLocalSearchParams();
+  const originalTree = TREES_DATA.find(t => t.id === id);
+
+  const [form, setForm] = useState({
+    name: originalTree?.name || '',
+    type: originalTree?.type || '',
+    age: originalTree?.age?.toString() || '',
+    health: originalTree?.health?.toString() || '',
+    status: originalTree?.status || 'available',
+    garden: originalTree?.garden || '',
+    expectedHarvest: originalTree?.expectedHarvest || '',
+    harvestMonth: originalTree?.harvestMonth || '',
+    rentalPrice: originalTree?.rentalPrice || '',
+    description: originalTree?.description || '',
+    story: originalTree?.story || '',
+    rfidCode: originalTree?.rfidCode || '',
     location: {
-      latitude: '',
-      longitude: '',
+      latitude: originalTree?.location?.latitude || '',
+      longitude: originalTree?.location?.longitude || '',
     },
-    treeId: '',
-    images: [],
+    images: originalTree?.images || [],
   });
 
-  const [errors, setErrors] = useState<Partial<Record<keyof TreeForm, string>>>({});
-  const [showCustomType, setShowCustomType] = useState(false);
-  const [showCustomGarden, setShowCustomGarden] = useState(false);
-  const [customType, setCustomType] = useState('');
-  const [customGarden, setCustomGarden] = useState('');
-
-  const generateTreeId = () => {
-    const timestamp = Date.now().toString().slice(-6);
-    const random = Math.random().toString(36).substring(2, 5).toUpperCase();
-    return `TR-${timestamp}-${random}`;
-  };
-
-  const addCustomType = () => {
-    if (customType.trim()) {
-      // Burada yeni ağaç türünü listeye ekleyebiliriz
-      console.log('Yeni ağaç türü eklendi:', customType);
-      setForm((prev) => ({ ...prev, type: customType.toLowerCase() }));
-      setCustomType('');
-      setShowCustomType(false);
-    }
-  };
-
-  const addCustomGarden = () => {
-    if (customGarden.trim()) {
-      // Burada yeni bahçeyi listeye ekleyebiliriz
-      console.log('Yeni bahçe eklendi:', customGarden);
-      setForm((prev) => ({ ...prev, garden: customGarden }));
-      setCustomGarden('');
-      setShowCustomGarden(false);
-    }
-  };
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -141,7 +142,7 @@ export default function AddTreeScreen() {
   };
 
   const validateForm = () => {
-    const newErrors: Partial<Record<keyof TreeForm, string>> = {};
+    const newErrors: Record<string, string> = {};
 
     if (!form.name) newErrors.name = 'Ağaç adı gereklidir';
     if (!form.age) newErrors.age = 'Yaş bilgisi gereklidir';
@@ -152,7 +153,6 @@ export default function AddTreeScreen() {
     if (!form.location.latitude || !form.location.longitude) {
       newErrors.location = 'Konum bilgisi gereklidir';
     }
-    if (form.images.length === 0) newErrors.images = 'En az bir fotoğraf ekleyin';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -160,15 +160,22 @@ export default function AddTreeScreen() {
 
   const handleSubmit = () => {
     if (validateForm()) {
-      // API call to save tree
-      console.log('Form submitted:', form);
+      // API call to update tree
+      console.log('Form updated:', form);
       router.back();
     }
   };
 
+  if (!originalTree) {
+    return (
+      <View style={styles.container}>
+        <Text>Ağaç bulunamadı</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#2E7D32" />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <Surface style={styles.header} elevation={4}>
@@ -180,8 +187,8 @@ export default function AddTreeScreen() {
               style={styles.backButton}
             />
             <View style={styles.headerText}>
-              <Text style={styles.title}>Yeni Ağaç Ekle 🌳</Text>
-              <Text style={styles.subtitle}>Ağaç bilgilerini doldurun</Text>
+              <Text style={styles.title}>Ağaç Düzenle 🌳</Text>
+              <Text style={styles.subtitle}>{originalTree.name}</Text>
             </View>
           </View>
         </Surface>
@@ -224,60 +231,7 @@ export default function AddTreeScreen() {
                   </Text>
                 </TouchableOpacity>
               ))}
-              <TouchableOpacity
-                style={styles.addCustomButton}
-                onPress={() => setShowCustomType(true)}
-              >
-                <MaterialCommunityIcons name="plus" size={16} color="#2E7D32" />
-                <Text style={styles.addCustomText}>Yeni Tür</Text>
-              </TouchableOpacity>
             </View>
-
-            {showCustomType && (
-              <Surface style={styles.customModal} elevation={4}>
-                <View style={styles.customModalHeader}>
-                  <View style={styles.customModalTitleContainer}>
-                    <MaterialCommunityIcons name="tree" size={24} color="#2E7D32" />
-                    <Text style={styles.customModalTitle}>Yeni Ağaç Türü Ekle</Text>
-                  </View>
-                  <TouchableOpacity onPress={() => setShowCustomType(false)}>
-                    <MaterialCommunityIcons name="close" size={24} color="#666" />
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.customModalSubtitle}>
-                  Listede olmayan ağaç türünü ekleyin
-                </Text>
-                <TextInput
-                  label="Ağaç Türü Adı"
-                  value={customType}
-                  onChangeText={setCustomType}
-                  mode="outlined"
-                  style={styles.customInput}
-                  outlineColor="#E0E0E0"
-                  activeOutlineColor="#2E7D32"
-                  placeholder="Örn: Kiraz, Vişne, Kayısı, Şeftali..."
-                />
-                <View style={styles.customModalActions}>
-                  <Button
-                    mode="contained"
-                    onPress={addCustomType}
-                    style={[
-                      styles.customModalButton, 
-                      { 
-                        width: '100%',
-                        backgroundColor: customType.trim() ? '#2E7D32' : '#A5D6A7',
-                      }
-                    ]}
-                    buttonColor={customType.trim() ? '#2E7D32' : '#A5D6A7'}
-                    textColor="#fff"
-                    disabled={!customType.trim()}
-                    labelStyle={{ color: '#fff' }}
-                  >
-                    Ekle
-                  </Button>
-                </View>
-              </Surface>
-            )}
 
             <View style={styles.row}>
               <View style={styles.halfInput}>
@@ -311,8 +265,6 @@ export default function AddTreeScreen() {
               </View>
             </View>
 
-            <View style={{ height: 20 }} />
-
             <Text style={styles.label}>Ağaç Durumu</Text>
             <View style={styles.statusContainer}>
               {TREE_STATUS.map((status) => (
@@ -333,6 +285,99 @@ export default function AddTreeScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+          </Surface>
+
+          {/* Bahçe ve Hasat */}
+          <Surface style={styles.section} elevation={2}>
+            <Text style={styles.sectionTitle}>Bahçe ve Hasat Bilgileri</Text>
+            
+            <Text style={styles.label}>Bahçe Seçimi</Text>
+            <View style={styles.gardenContainer}>
+              {GARDENS.map((garden) => (
+                <TouchableOpacity
+                  key={garden.id}
+                  style={[
+                    styles.gardenButton,
+                    form.garden === garden.name && styles.gardenButtonActive
+                  ]}
+                  onPress={() => setForm((prev) => ({ ...prev, garden: garden.name }))}
+                >
+                  <MaterialCommunityIcons 
+                    name="flower" 
+                    size={20} 
+                    color={form.garden === garden.name ? '#fff' : '#2E7D32'} 
+                  />
+                  <Text style={[
+                    styles.gardenText,
+                    form.garden === garden.name && styles.gardenTextActive
+                  ]}>
+                    {garden.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {errors.garden && <Text style={styles.errorText}>{errors.garden}</Text>}
+
+            <View style={styles.row}>
+              <View style={styles.halfInput}>
+                <TextInput
+                  label="Tahmini Hasat (kg)"
+                  value={form.expectedHarvest}
+                  onChangeText={(text) => setForm((prev) => ({ ...prev, expectedHarvest: text }))}
+                  mode="outlined"
+                  error={!!errors.expectedHarvest}
+                  keyboardType="numeric"
+                  style={[styles.input, { color: '#000' }]}
+                  outlineColor="#E0E0E0"
+                  activeOutlineColor="#2E7D32"
+                  textColor="#000"
+                />
+                {errors.expectedHarvest && (
+                  <Text style={styles.errorText}>{errors.expectedHarvest}</Text>
+                )}
+              </View>
+
+              <View style={styles.halfInput}>
+                <TextInput
+                  label="Yıllık Kira (₺)"
+                  value={form.rentalPrice}
+                  onChangeText={(text) => setForm((prev) => ({ ...prev, rentalPrice: text }))}
+                  mode="outlined"
+                  error={!!errors.rentalPrice}
+                  keyboardType="numeric"
+                  style={[styles.input, { color: '#000' }]}
+                  outlineColor="#E0E0E0"
+                  activeOutlineColor="#2E7D32"
+                  textColor="#000"
+                />
+                {errors.rentalPrice && (
+                  <Text style={styles.errorText}>{errors.rentalPrice}</Text>
+                )}
+              </View>
+            </View>
+
+            <Text style={styles.label}>Hasat Ayı</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.monthScroll}>
+              <View style={styles.monthContainer}>
+                {HARVEST_MONTHS.map((month) => (
+                  <TouchableOpacity
+                    key={month.value}
+                    style={[
+                      styles.monthButton,
+                      form.harvestMonth === month.value && styles.monthButtonActive
+                    ]}
+                    onPress={() => setForm((prev) => ({ ...prev, harvestMonth: month.value }))}
+                  >
+                    <Text style={[
+                      styles.monthText,
+                      form.harvestMonth === month.value && styles.monthTextActive
+                    ]}>
+                      {month.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
           </Surface>
 
           {/* RFID ve Konum */}
@@ -398,162 +443,11 @@ export default function AddTreeScreen() {
               <Text style={styles.label}>Ağaç ID</Text>
               <View style={styles.treeIdBox}>
                 <Text style={styles.treeIdText}>
-                  {form.treeId || generateTreeId()}
+                  {originalTree.treeId}
                 </Text>
-                <IconButton
-                  icon="refresh"
-                  size={20}
-                  onPress={() => setForm((prev) => ({ ...prev, treeId: generateTreeId() }))}
-                  iconColor="#2E7D32"
-                />
+                <Chip style={styles.readOnlyChip}>Salt Okunur</Chip>
               </View>
             </View>
-          </Surface>
-
-          {/* Bahçe ve Hasat */}
-          <Surface style={styles.section} elevation={2}>
-            <Text style={styles.sectionTitle}>Bahçe ve Hasat Bilgileri</Text>
-            
-            <Text style={styles.label}>Bahçe Seçimi</Text>
-            <View style={styles.gardenContainer}>
-              {GARDENS.map((garden) => (
-                <TouchableOpacity
-                  key={garden.id}
-                  style={[
-                    styles.gardenButton,
-                    form.garden === garden.id && styles.gardenButtonActive
-                  ]}
-                  onPress={() => setForm((prev) => ({ ...prev, garden: garden.id }))}
-                >
-                  <MaterialCommunityIcons 
-                    name="flower" 
-                    size={20} 
-                    color={form.garden === garden.id ? '#fff' : '#2E7D32'} 
-                  />
-                  <Text style={[
-                    styles.gardenText,
-                    form.garden === garden.id && styles.gardenTextActive
-                  ]}>
-                    {garden.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-              <TouchableOpacity
-                style={styles.addCustomButton}
-                onPress={() => setShowCustomGarden(true)}
-              >
-                <MaterialCommunityIcons name="plus" size={16} color="#2E7D32" />
-                <Text style={styles.addCustomText}>Yeni Bahçe</Text>
-              </TouchableOpacity>
-            </View>
-
-            {showCustomGarden && (
-              <Surface style={styles.customModal} elevation={4}>
-                <View style={styles.customModalHeader}>
-                  <View style={styles.customModalTitleContainer}>
-                    <MaterialCommunityIcons name="flower" size={24} color="#2E7D32" />
-                    <Text style={styles.customModalTitle}>Yeni Bahçe Ekle</Text>
-                  </View>
-                  <TouchableOpacity onPress={() => setShowCustomGarden(false)}>
-                    <MaterialCommunityIcons name="close" size={24} color="#666" />
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.customModalSubtitle}>
-                  Yeni bir bahçe alanı tanımlayın
-                </Text>
-                <TextInput
-                  label="Bahçe Adı"
-                  value={customGarden}
-                  onChangeText={setCustomGarden}
-                  mode="outlined"
-                  style={styles.customInput}
-                  outlineColor="#E0E0E0"
-                  activeOutlineColor="#2E7D32"
-                  placeholder="Örn: Elma Bahçesi, Kiraz Bahçesi, Karışık Meyve Bahçesi..."
-                />
-                <View style={styles.customModalActions}>
-                  <Button
-                    mode="contained"
-                    onPress={addCustomGarden}
-                    style={[
-                      styles.customModalButton, 
-                      { 
-                        width: '100%',
-                        backgroundColor: customGarden.trim() ? '#2E7D32' : '#A5D6A7',
-                      }
-                    ]}
-                    buttonColor={customGarden.trim() ? '#2E7D32' : '#A5D6A7'}
-                    textColor="#fff"
-                    disabled={!customGarden.trim()}
-                    labelStyle={{ color: '#fff' }}
-                  >
-                    Ekle
-                  </Button>
-                </View>
-              </Surface>
-            )}
-            {errors.garden && <Text style={styles.errorText}>{errors.garden}</Text>}
-
-            <View style={styles.row}>
-              <View style={styles.halfInput}>
-                <TextInput
-                  label="Tahmini Hasat (kg)"
-                  value={form.expectedHarvest}
-                  onChangeText={(text) => setForm((prev) => ({ ...prev, expectedHarvest: text }))}
-                  mode="outlined"
-                  error={!!errors.expectedHarvest}
-                  keyboardType="numeric"
-                  style={[styles.input, { color: '#000' }]}
-                  outlineColor="#E0E0E0"
-                  activeOutlineColor="#2E7D32"
-                  textColor="#000"
-                />
-                {errors.expectedHarvest && (
-                  <Text style={styles.errorText}>{errors.expectedHarvest}</Text>
-                )}
-              </View>
-
-              <View style={styles.halfInput}>
-                <TextInput
-                  label="Yıllık Kira (₺)"
-                  value={form.rentalPrice}
-                  onChangeText={(text) => setForm((prev) => ({ ...prev, rentalPrice: text }))}
-                  mode="outlined"
-                  error={!!errors.rentalPrice}
-                  keyboardType="numeric"
-                  style={[styles.input, { color: '#000' }]}
-                  outlineColor="#E0E0E0"
-                  activeOutlineColor="#2E7D32"
-                  textColor="#000"
-                />
-                {errors.rentalPrice && (
-                  <Text style={styles.errorText}>{errors.rentalPrice}</Text>
-                )}
-              </View>
-            </View>
-
-            <Text style={styles.label}>Hasat Ayı</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.monthScroll}>
-              <View style={styles.monthContainer}>
-                {HARVEST_MONTHS.map((month) => (
-                  <TouchableOpacity
-                    key={month.value}
-                    style={[
-                      styles.monthButton,
-                      form.harvestMonth === month.value && styles.monthButtonActive
-                    ]}
-                    onPress={() => setForm((prev) => ({ ...prev, harvestMonth: month.value }))}
-                  >
-                    <Text style={[
-                      styles.monthText,
-                      form.harvestMonth === month.value && styles.monthTextActive
-                    ]}>
-                      {month.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
           </Surface>
 
           {/* Açıklama */}
@@ -592,12 +486,6 @@ export default function AddTreeScreen() {
               placeholder="Örn: Bu 15 yaşındaki zeytin ağacımız, dedemizin 2008'de diktiği ilk ağaçlardan. Her yıl 120kg zeytin veriyor ve ailemizin gururu. 'Barış Ağacı' olarak biliniyor çünkü komşularımızla birlikte hasat ediyoruz."
               textColor="#000"
             />
-            <View style={styles.storyInfo}>
-              <MaterialCommunityIcons name="lightbulb-outline" size={16} color="#666" />
-              <Text style={styles.storyInfoText}>
-                Hikaye, kiralayan kişilerin dikkatini çeker ve duygusal bağ kurmalarını sağlar
-              </Text>
-            </View>
           </Surface>
 
           {/* Fotoğraflar */}
@@ -624,7 +512,6 @@ export default function AddTreeScreen() {
                 <Text style={styles.addImageText}>Fotoğraf Ekle</Text>
               </TouchableOpacity>
             </View>
-            {errors.images && <Text style={styles.errorText}>{errors.images}</Text>}
           </Surface>
 
           <Button
@@ -634,7 +521,7 @@ export default function AddTreeScreen() {
             buttonColor="#2E7D32"
             textColor="#fff"
           >
-            Ağaç Ekle
+            Değişiklikleri Kaydet
           </Button>
         </View>
       </ScrollView>
@@ -673,7 +560,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#fff',
     opacity: 0.9,
   },
@@ -779,25 +666,6 @@ const styles = StyleSheet.create({
   statusTextActive: {
     color: '#fff',
   },
-  treeIdContainer: {
-    marginTop: 8,
-  },
-  treeIdBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F5F5F5',
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  treeIdText: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2E7D32',
-    fontFamily: 'monospace',
-  },
   gardenContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -857,7 +725,38 @@ const styles = StyleSheet.create({
   monthTextActive: {
     color: '#fff',
   },
+  treeIdContainer: {
+    marginTop: 8,
+  },
+  treeIdBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  treeIdText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2E7D32',
+    fontFamily: 'monospace',
+  },
+  readOnlyChip: {
+    backgroundColor: '#E0E0E0',
+    marginLeft: 8,
+  },
   textArea: {
+    marginTop: 8,
+  },
+  storySubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  storyArea: {
     marginTop: 8,
   },
   imageContainer: {
@@ -902,87 +801,5 @@ const styles = StyleSheet.create({
     marginVertical: 24,
     borderRadius: 12,
     paddingVertical: 8,
-  },
-  storySubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
-  },
-  storyArea: {
-    marginTop: 8,
-  },
-  storyInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  storyInfoText: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 8,
-  },
-  addCustomButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#fff',
-  },
-  addCustomText: {
-    fontSize: 12,
-    color: '#2E7D32',
-    fontWeight: '500',
-    marginLeft: 6,
-  },
-  customModal: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  customModalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  customModalTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  customModalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1B4332',
-    marginLeft: 8,
-  },
-  customModalSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 16,
-  },
-  customInput: {
-    marginBottom: 12,
-    backgroundColor: '#fff',
-    color: '#000',
-  },
-  customModalActions: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  customModalButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 8,
-    minHeight: 36,
   },
 }); 
