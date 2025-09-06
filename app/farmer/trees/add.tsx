@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Image, StatusBar, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, Image, StatusBar, TouchableOpacity, Alert } from 'react-native';
 import { Text, TextInput, Button, Surface, IconButton, Chip, Divider } from 'react-native-paper';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNfcReader } from '../../hooks/useNfcReader';
+import { NfcTutorialModal } from '../../components/NfcTutorialModal';
+import { SuccessModal } from '../../components/SuccessModal';
 
 interface TreeForm {
   name: string;
@@ -64,6 +67,16 @@ const GARDENS = [
 ];
 
 export default function AddTreeScreen() {
+  // NFC Reader Hook
+  const { state, uid, error, read, showTutorial, showSuccess, showTutorialModal, hideTutorialModal, hideSuccessModal } = useNfcReader();
+  
+  // UID okunduğunda forma ekle
+  useEffect(() => {
+    if (uid) {
+      setForm(prev => ({ ...prev, rfidCode: uid }));
+    }
+  }, [uid]);
+  
   const [form, setForm] = useState<TreeForm>({
     name: '',
     type: TREE_TYPES[0].value,
@@ -91,6 +104,13 @@ export default function AddTreeScreen() {
   const [customType, setCustomType] = useState('');
   const [customGarden, setCustomGarden] = useState('');
 
+  // UID'yi forma otomatik doldur
+  useEffect(() => {
+    if (uid) {
+      setForm(prev => ({ ...prev, rfidCode: uid }));
+    }
+  }, [uid]);
+
   const generateTreeId = () => {
     const timestamp = Date.now().toString().slice(-6);
     const random = Math.random().toString(36).substring(2, 5).toUpperCase();
@@ -116,6 +136,7 @@ export default function AddTreeScreen() {
       setShowCustomGarden(false);
     }
   };
+
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -339,18 +360,33 @@ export default function AddTreeScreen() {
           <Surface style={styles.section} elevation={2}>
             <Text style={styles.sectionTitle}>RFID ve Konum</Text>
             
-            <TextInput
-              label="RFID Kodu"
-              value={form.rfidCode}
-              onChangeText={(text) => setForm((prev) => ({ ...prev, rfidCode: text }))}
-              mode="outlined"
-              error={!!errors.rfidCode}
-              style={[styles.input, { color: '#000' }]}
-              outlineColor="#E0E0E0"
-              activeOutlineColor="#2E7D32"
-              placeholder="RFID etiket kodunu girin"
-              textColor="#000"
-            />
+            <View style={styles.rfidContainer}>
+              <TextInput
+                label="RFID Kodu"
+                value={form.rfidCode}
+                onChangeText={(text) => setForm((prev) => ({ ...prev, rfidCode: text }))}
+                mode="outlined"
+                error={!!errors.rfidCode}
+                style={[styles.input, styles.rfidInput, { color: '#000' }]}
+                outlineColor="#E0E0E0"
+                activeOutlineColor="#2E7D32"
+                placeholder="RFID etiket kodunu girin veya NFC ile okuyun"
+                textColor="#000"
+              />
+              <Button
+                mode="outlined"
+                onPress={showTutorialModal}
+                loading={state === 'reading'}
+                disabled={state === 'reading'}
+                style={styles.nfcButton}
+                buttonColor="#2E7D32"
+                textColor="#fff"
+                icon="nfc"
+                labelStyle={{ fontSize: 12 }}
+              >
+                {state === 'reading' ? 'Okunuyor...' : 'NFC Oku'}
+              </Button>
+            </View>
             {errors.rfidCode && <Text style={styles.errorText}>{errors.rfidCode}</Text>}
 
             <View style={styles.row}>
@@ -638,6 +674,21 @@ export default function AddTreeScreen() {
           </Button>
         </View>
       </ScrollView>
+      
+      {/* NFC Tutorial Modal */}
+      <NfcTutorialModal
+        visible={showTutorial}
+        onClose={hideTutorialModal}
+        onStartReading={read}
+        isReading={state === 'reading'}
+      />
+      
+      {/* Success Modal */}
+      <SuccessModal
+        visible={showSuccess}
+        uid={uid}
+        onClose={hideSuccessModal}
+      />
     </View>
   );
 }
@@ -984,5 +1035,20 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
     minHeight: 36,
+  },
+  rfidContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  rfidInput: {
+    flex: 1,
+  },
+  nfcButton: {
+    borderRadius: 8,
+    minHeight: 50,
+    paddingHorizontal: 12,
+    marginTop: -6,
   },
 }); 

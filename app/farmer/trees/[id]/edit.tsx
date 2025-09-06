@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { Text, TextInput, Button, Surface, IconButton, Chip } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { useNfcReader } from '../../../hooks/useNfcReader';
 
 // Örnek ağaç verileri (gerçek uygulamada API'den gelecek)
 const TREES_DATA = [
@@ -95,6 +96,9 @@ const GARDENS = [
 export default function EditTreeScreen() {
   const { id } = useLocalSearchParams();
   const originalTree = TREES_DATA.find(t => t.id === id);
+  
+  // NFC Reader Hook
+  const { state, uid, error, read } = useNfcReader();
 
   const [form, setForm] = useState({
     name: originalTree?.name || '',
@@ -117,6 +121,13 @@ export default function EditTreeScreen() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // UID'yi forma otomatik doldur
+  useEffect(() => {
+    if (uid) {
+      setForm(prev => ({ ...prev, rfidCode: uid }));
+    }
+  }, [uid]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -384,18 +395,33 @@ export default function EditTreeScreen() {
           <Surface style={styles.section} elevation={2}>
             <Text style={styles.sectionTitle}>RFID ve Konum</Text>
             
-            <TextInput
-              label="RFID Kodu"
-              value={form.rfidCode}
-              onChangeText={(text) => setForm((prev) => ({ ...prev, rfidCode: text }))}
-              mode="outlined"
-              error={!!errors.rfidCode}
-              style={[styles.input, { color: '#000' }]}
-              outlineColor="#E0E0E0"
-              activeOutlineColor="#2E7D32"
-              placeholder="RFID etiket kodunu girin"
-              textColor="#000"
-            />
+            <View style={styles.rfidContainer}>
+              <TextInput
+                label="RFID Kodu"
+                value={form.rfidCode}
+                onChangeText={(text) => setForm((prev) => ({ ...prev, rfidCode: text }))}
+                mode="outlined"
+                error={!!errors.rfidCode}
+                style={[styles.input, styles.rfidInput, { color: '#000' }]}
+                outlineColor="#E0E0E0"
+                activeOutlineColor="#2E7D32"
+                placeholder="RFID etiket kodunu girin veya NFC ile okuyun"
+                textColor="#000"
+              />
+              <Button
+                mode="outlined"
+                onPress={read}
+                loading={state === 'reading'}
+                disabled={state === 'reading'}
+                style={styles.nfcButton}
+                buttonColor="#2E7D32"
+                textColor="#fff"
+                icon="nfc"
+                labelStyle={{ fontSize: 12 }}
+              >
+                {state === 'reading' ? 'Okunuyor...' : 'NFC Oku'}
+              </Button>
+            </View>
             {errors.rfidCode && <Text style={styles.errorText}>{errors.rfidCode}</Text>}
 
             <View style={styles.row}>
@@ -801,5 +827,19 @@ const styles = StyleSheet.create({
     marginVertical: 24,
     borderRadius: 12,
     paddingVertical: 8,
+  },
+  rfidContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 12,
+    marginBottom: 12,
+  },
+  rfidInput: {
+    flex: 1,
+  },
+  nfcButton: {
+    borderRadius: 8,
+    minHeight: 48,
+    paddingHorizontal: 12,
   },
 }); 
