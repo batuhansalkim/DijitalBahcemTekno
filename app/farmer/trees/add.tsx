@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Image, StatusBar, TouchableOpacity, Alert } from 'react-native';
-import { Text, TextInput, Button, Surface, IconButton, Chip, Divider } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, Image, StatusBar, TouchableOpacity, Alert, Platform } from 'react-native';
+import { Text, TextInput, Button, Surface, IconButton, Chip, Divider, ProgressBar } from 'react-native-paper';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNfcReader } from '../../hooks/useNfcReader';
+import { useTreeUpload } from '../../hooks/useTreeUpload';
+import { TreeDataPackage } from '../../services/pinataService';
 import { NfcTutorialModal } from '../../components/NfcTutorialModal';
 import { SuccessModal } from '../../components/SuccessModal';
 
@@ -69,6 +71,7 @@ const GARDENS = [
 export default function AddTreeScreen() {
   // NFC Reader Hook
   const { state, uid, error, read, readWithLocation, location, showTutorial, showSuccess, showTutorialModal, hideTutorialModal, hideSuccessModal } = useNfcReader();
+  const { uploadTreeData, isUploading, uploadProgress, lastUploadedCid, testConnection } = useTreeUpload();
   
   // UID okunduğunda forma ekle ve ağaç ID'sini güncelle
   useEffect(() => {
@@ -200,11 +203,91 @@ export default function AddTreeScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateForm()) {
-      // API call to save tree
-      console.log('Form submitted:', form);
-      router.back();
+      try {
+        // Form verilerini TreeDataPackage formatına çevir
+        const treeDataPackage: TreeDataPackage = {
+          tree_info: {
+            rfid_uid: form.rfidCode,
+            tree_id: form.treeId,
+            name: form.name,
+            type: form.type,
+            age_years: parseInt(form.age) || 0,
+            health_percent: parseInt(form.health) || 100,
+            status: form.status
+          },
+          location: {
+            lat: parseFloat(form.location.latitude),
+            lon: parseFloat(form.location.longitude),
+            accuracy_m: location?.accuracy_m || 0,
+            altitude_m: location?.alt
+          },
+          timestamp: {
+            collected_at_utc: new Date().toISOString(),
+            created_at_utc: new Date().toISOString(),
+            updated_at_utc: new Date().toISOString()
+          },
+          farmer_info: {
+            farmer_id: "farmer_123", // TODO: Kullanıcıdan alınacak
+            name: "Ahmet Çiftçi",    // TODO: Kullanıcıdan alınacak
+            experience_years: 15      // TODO: Kullanıcıdan alınacak
+          },
+          garden_info: {
+            garden_id: form.garden,
+            garden_name: form.garden,
+            area_hectares: 2.5,      // TODO: Kullanıcıdan alınacak
+            location: "Ayvalık, Balıkesir" // TODO: Kullanıcıdan alınacak
+          },
+          harvest_info: {
+            expected_harvest_date: form.harvestMonth,
+            expected_harvest_amount_kg: parseInt(form.expectedHarvest) || 0
+          },
+          maintenance_info: {
+            notes: form.description
+          },
+          device_info: {
+            platform: Platform.OS,
+            os_version: Platform.Version.toString(),
+            device_model: "Unknown", // TODO: Device info'dan alınacak
+            app_version: "1.0.0",
+            nfc_technology: "Ndef",
+            gps_accuracy_m: location?.accuracy_m || 0
+          }
+        };
+
+        // Pinata'ya yükle
+        const cid = await uploadTreeData(treeDataPackage);
+        
+        // Başarılı olduğunda formu temizle ve geri dön
+        setForm({
+          name: '',
+          type: TREE_TYPES[0].value,
+          age: '',
+          health: '100',
+          status: TREE_STATUS[0].value,
+          garden: '',
+          expectedHarvest: '',
+          harvestMonth: HARVEST_MONTHS[0].value,
+          rentalPrice: '',
+          description: '',
+          story: '',
+          rfidCode: '',
+          location: {
+            latitude: '',
+            longitude: '',
+          },
+          treeId: '',
+          images: [],
+        });
+        
+        // Geri dön
+        router.back();
+        
+      } catch (error) {
+        console.error('Submit error:', error);
+        // Hata zaten useTreeUpload hook'unda handle ediliyor
+      }
     }
   };
 
@@ -687,14 +770,28 @@ export default function AddTreeScreen() {
             {errors.images && <Text style={styles.errorText}>{errors.images}</Text>}
           </Surface>
 
+          {/* Upload Progress */}
+          {isUploading && (
+            <Surface style={styles.progressContainer} elevation={2}>
+              <Text style={styles.progressText}>IPFS'e yükleniyor... {uploadProgress}%</Text>
+              <ProgressBar 
+                progress={uploadProgress / 100} 
+                color="#2E7D32"
+                style={styles.progressBar}
+              />
+            </Surface>
+          )}
+
           <Button
             mode="contained"
             onPress={handleSubmit}
+            loading={isUploading}
+            disabled={!uid || !location || isUploading}
             style={styles.submitButton}
             buttonColor="#2E7D32"
             textColor="#fff"
           >
-            Ağaç Ekle
+            {isUploading ? 'Yükleniyor...' : 'Ağacı Kaydet'}
           </Button>
         </View>
       </ScrollView>
@@ -977,6 +1074,24 @@ const styles = StyleSheet.create({
     marginVertical: 24,
     borderRadius: 12,
     paddingVertical: 8,
+  },
+  progressContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  progressText: {
+    fontSize: 14,
+    color: '#2E7D32',
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  progressBar: {
+    width: '100%',
+    height: 8,
+    borderRadius: 4,
   },
   storySubtitle: {
     fontSize: 14,
