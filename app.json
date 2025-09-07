@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Bu uygulama ağaçların konumunu kaydetmek için konum bilgisine ihtiyaç duyar."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +21,8 @@
       },
       "permissions": [
         "android.permission.NFC",
-        "android.permission.NFC"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
       ],
       "package": "com.ahmetsoftware3281.DijitalBahcem"
     },

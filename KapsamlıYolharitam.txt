@@ -1,0 +1,383 @@
+Hafta 1 – Temel Veri Toplama
+
+Hedef: Telefonun NFC’si ile RFID UID + GPS konumu alabilmek.
+
+NFC okuma
+
+React Native/Expo projesinde react-native-nfc-manager veya Expo modülünü kullan.
+
+Telefonu etikete yaklaştır → UID string olarak al.
+
+Konum alma
+
+expo-location kütüphanesi ile GPS’ten lat, lon, accuracy çek.
+
+Doğruluk > 10m ise kullanıcıya uyarı ver.
+
+Veriyi birleştir
+
+UID + konum + timestamp → JSON obje oluştur:
+
+{
+  "rfid": "04A224FC3B2980",
+  "lat": 37.123456,
+  "lon": 33.654321,
+  "timestamp": "2025-09-07T07:15:23Z"
+}
+
+
+👉 Bu hafta sonunda: Uygulaman telefonla etiketi okuyacak ve konumla birlikte JSON üretecek.
+
+🟡 Hafta 2 – IPFS & Blokzincir Entegrasyonu
+
+Hedef: UID + konumu IPFS’e yüklemek ve kontrata CID yazmak.
+
+IPFS’e yükleme
+
+JSON verisini Pinata API veya Infura IPFS ile yükle.
+
+Dönüşte CID al.
+
+Akıllı sözleşme çağrısı (Zeynep ile koordineli)
+
+registerTree(rfid, cid) fonksiyonunu çağır.
+
+WalletConnect veya MetaMask ile imzala.
+
+Event dinleme
+
+Kontrat event’inden CID ve RFID eşleşmesini çek.
+
+Doğru şekilde yazıldığını mobilde doğrula.
+
+👉 Bu hafta sonunda: Telefon → IPFS → Blokzincir akışı çalışacak.
+
+🔵 Hafta 3 – Ekstra Özellikler & Güvenlik
+
+Hedef: Veriyi güvenli hale getirmek ve uydu verisini eklemek.
+
+Veri imzası (opsiyonel)
+
+Mobil cihaz kendi cüzdan anahtarıyla JSON paketini imzalayabilir.
+
+Böylece sahte UID girilmesi zorlaşır.
+
+Uydu verisi ekleme
+
+Sentinel-2 API veya Google Earth Engine’den koordinat bazlı uydu verisi çek.
+
+Bu veriyi de JSON’a ekleyip IPFS’e yükleyebilirsin.
+
+Geçmiş veriler ekranı (Batuhan ile birlikte)
+
+getByRfid(rfid) ile kontrattan CID al.
+
+IPFS’ten JSON’u çekip geçmiş konum/uydu kayıtlarını göster.
+
+👉 Bu hafta sonunda: Güvenlik katmanı ve uydu verisiyle sistemin daha sağlam ve görsel hale gelir.
+
+📝 Senin Yolun Özet
+
+NFC UID + GPS → JSON
+
+JSON → IPFS → CID
+
+CID → Sözleşme → Event
+
+(Opsiyonel) İmza & Uydu verisi
+
+Yani sen aslında donanım yapmadan, sadece mobil NFC + GPS ile işini çözebiliyorsun ✅
+
+═══════════════════════════════════════════════════════════════════════════════
+📋 DETAYLI TASK LİSTESİ VE İLERLEME DURUMU
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ HAFTA 1 - TEMEL VERİ TOPLAMA (TAMAMLANDI - 7/7 TASK)
+
+🔧 NFC Okuma:
+✅ React Native/Expo projesinde react-native-nfc-manager kurulumu
+✅ Telefonu etikete yaklaştır → UID string olarak alma
+✅ Ndef → NfcA fallback stratejisi implementasyonu
+✅ Error handling ve retry mekanizması (3 deneme)
+✅ Timeout parametresi (10 saniye)
+
+📍 Konum Alma:
+✅ expo-location kütüphanesi kurulumu
+✅ GPS'ten lat, lon, accuracy çekme
+✅ Doğruluk > 10m ise kullanıcıya uyarı verme
+✅ Konum izinleri yönetimi (Android/iOS)
+✅ Yüksek doğruluk modu (Location.Accuracy.Highest)
+
+🔄 Veri Birleştirme:
+✅ UID + konum + timestamp → JSON obje oluşturma
+✅ Otomatik form doldurma (RFID + Konum)
+✅ Ağaç ID "TR-UID" formatı oluşturma
+✅ Input alanlarını sadece okunabilir yapma
+✅ Tek tuşla "NFC + Konum Oku" fonksiyonalitesi
+
+🧪 Final Test:
+✅ Telefonla etiket okuma + konum + JSON üretme
+✅ Hata senaryoları test edildi
+✅ Metro bundler hataları çözüldü
+
+═══════════════════════════════════════════════════════════════════════════════
+
+⏳ HAFTA 2 - IPFS & BLOKZİNCİR ENTEGRASYONU (BEKLİYOR - 0/6 TASK)
+
+🌐 IPFS Entegrasyonu:
+⏳ Pinata API veya Infura IPFS kurulumu
+⏳ JSON verisini IPFS'e yükleme
+⏳ CID alma ve yönetimi
+⏳ Offline mod için AsyncStorage kuyruğu
+
+📝 Akıllı Sözleşme:
+⏳ registerTree(rfid, cid) fonksiyonu implementasyonu
+⏳ WalletConnect veya MetaMask entegrasyonu
+⏳ İmzalama işlemi ve transaction yönetimi
+
+📡 Event Yönetimi:
+⏳ Kontrat event'lerini dinleme
+⏳ CID ve RFID eşleşmesi doğrulama
+⏳ Mobilde doğrulama ekranı oluşturma
+
+🧪 Final Test:
+⏳ Telefon → IPFS → Blokzincir akışı çalışması
+
+═══════════════════════════════════════════════════════════════════════════════
+🌳 PİNATA IPFS ENTEGRASYONU - DETAYLI YOL HARİTASI
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 HEDEF: Çiftçi ağaç ekleme kısmında NFC + GPS verilerini Pinata IPFS'e yüklemek
+
+📋 IMPLEMENTASYON ADIMLARI:
+
+🔧 1. PINATA KURULUMU VE KONFİGÜRASYONU:
+⏳ Pinata hesabı oluşturma (https://pinata.cloud)
+⏳ API Key ve Secret Key alma
+⏳ Environment variables (.env) dosyası oluşturma
+⏳ PinataService.ts servis dosyası oluşturma
+⏳ PinataConfig interface tanımlama
+
+📦 2. VERİ YAPISI TASARIMI:
+⏳ TreeDataPackage interface oluşturma
+⏳ Temel ağaç bilgileri (rfid_uid, tree_id, name, type, age, health)
+⏳ Konum bilgileri (lat, lon, accuracy, altitude, address)
+⏳ Zaman damgaları (collected_at, created_at, updated_at)
+⏳ Çiftçi bilgileri (farmer_id, name, contact, experience)
+⏳ Bahçe bilgileri (garden_id, garden_name, area, location)
+⏳ Hasat bilgileri (last_harvest, expected_harvest, amounts)
+⏳ Bakım bilgileri (maintenance_dates, types, notes)
+⏳ Cihaz bilgileri (platform, os_version, device_model, app_version)
+⏳ Güvenlik bilgileri (digital_signature, signer_address) - Hafta 3
+⏳ Uydu verileri (ndvi_index, rgb_values, cloud_coverage) - Hafta 3
+
+🚀 3. PINATA SERVİSİ IMPLEMENTASYONU:
+⏳ uploadTreeData() fonksiyonu - JSON'u IPFS'e yükleme
+⏳ getTreeData() fonksiyonu - CID ile veri çekme
+⏳ searchByMetadata() fonksiyonu - Key-value arama
+⏳ addToOfflineQueue() fonksiyonu - Offline kuyruğa ekleme
+⏳ processOfflineQueue() fonksiyonu - Kuyruğu işleme
+⏳ Error handling ve retry mekanizması
+⏳ Progress tracking sistemi
+
+🪝 4. REACT HOOK OLUŞTURMA:
+⏳ useTreeUpload.ts hook dosyası oluşturma
+⏳ uploadTreeData() fonksiyonu
+⏳ processOfflineQueue() fonksiyonu
+⏳ isUploading state yönetimi
+⏳ uploadProgress state yönetimi
+⏳ lastUploadedCid state yönetimi
+⏳ Error handling ve user feedback
+
+📱 5. AĞAÇ EKLEME EKRANI GÜNCELLEMESİ:
+⏳ app/farmer/trees/add.tsx dosyasını güncelleme
+⏳ useTreeUpload hook'unu import etme
+⏳ handleSubmit fonksiyonunu güncelleme
+⏳ Form verilerini TreeDataPackage formatına çevirme
+⏳ Pinata'ya yükleme işlemi entegrasyonu
+⏳ Upload progress indicator ekleme
+⏳ Success/Error mesajları ekleme
+⏳ Form temizleme işlemi
+
+📶 6. OFFLINE MOD DESTEĞİ:
+⏳ AsyncStorage ile offline queue sistemi
+⏳ Network durumu kontrolü
+⏳ Otomatik retry mekanizması
+⏳ Offline veri senkronizasyonu
+⏳ Queue management UI
+
+🔍 7. VERİ DOĞRULAMA VE YÖNETİMİ:
+⏳ TreeDataManager.ts servis dosyası oluşturma
+⏳ validateTreeData() fonksiyonu
+⏳ createVersionedData() fonksiyonu
+⏳ compressTreeData() fonksiyonu
+⏳ encryptTreeData() fonksiyonu (opsiyonel)
+
+📊 8. USER INTERFACE GELİŞTİRMELERİ:
+⏳ Upload progress bar ekleme
+⏳ Loading states ekleme
+⏳ Success/Error modals ekleme
+⏳ CID display ekleme
+⏳ Offline status indicator ekleme
+⏳ Retry button ekleme
+
+🧪 9. TEST VE DOĞRULAMA:
+⏳ Pinata API bağlantı testi
+⏳ JSON upload testi
+⏳ CID alma testi
+⏳ Offline queue testi
+⏳ Error handling testi
+⏳ Progress tracking testi
+⏳ Form validation testi
+
+═══════════════════════════════════════════════════════════════════════════════
+📁 DOSYA YAPISI VE IMPLEMENTASYON DETAYLARI
+═══════════════════════════════════════════════════════════════════════════════
+
+📂 app/services/
+├── pinataService.ts          # Pinata API entegrasyonu
+├── treeDataManager.ts       # Veri yönetimi ve doğrulama
+└── locationService.ts       # Mevcut GPS servisi
+
+📂 app/hooks/
+├── useTreeUpload.ts         # Ağaç yükleme hook'u
+└── useNfcReader.ts          # Mevcut NFC hook'u
+
+📂 app/farmer/trees/
+├── add.tsx                  # Güncellenecek ağaç ekleme ekranı
+└── [id]/edit.tsx            # Mevcut düzenleme ekranı
+
+📂 app/types/
+└── treeData.ts              # TreeDataPackage interface
+
+═══════════════════════════════════════════════════════════════════════════════
+🔧 TEKNİK DETAYLAR VE KOD ÖRNEKLERİ
+═══════════════════════════════════════════════════════════════════════════════
+
+🌐 PinataService.ts Ana Fonksiyonlar:
+- uploadTreeData(treeData: TreeDataPackage): Promise<string>
+- getTreeData(cid: string): Promise<TreeDataPackage>
+- searchByMetadata(keyvalues: Record<string, string>): Promise<string[]>
+- addToOfflineQueue(treeData: TreeDataPackage): Promise<void>
+- processOfflineQueue(): Promise<void>
+
+🪝 useTreeUpload.ts Hook States:
+- isUploading: boolean
+- uploadProgress: number
+- lastUploadedCid: string | null
+- error: string | null
+
+📱 Add Tree Screen Güncellemeleri:
+- Form validation
+- TreeDataPackage oluşturma
+- Pinata upload entegrasyonu
+- Progress indicator
+- Success/Error handling
+- Form reset
+
+═══════════════════════════════════════════════════════════════════════════════
+🎯 BAŞARI KRİTERLERİ VE TEST SENARYOLARI
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ Fonksiyonel Testler:
+- NFC okuma + GPS konum + JSON oluşturma
+- Pinata'ya başarılı upload
+- CID alma ve doğrulama
+- Offline queue çalışması
+- Error handling ve retry
+- Progress tracking
+
+✅ Performans Testleri:
+- Upload süresi < 5 saniye
+- Memory leak yok
+- Network timeout handling
+- Offline queue capacity
+
+✅ Kullanıcı Deneyimi:
+- Anlaşılır progress indicator
+- Açık error mesajları
+- Offline durumu bildirimi
+- Success confirmation
+
+═══════════════════════════════════════════════════════════════════════════════
+🚀 SONRAKI ADIMLAR VE ÖNERİLER
+═══════════════════════════════════════════════════════════════════════════════
+
+1. 🎯 Pinata hesabı oluştur ve API key'leri al
+2. 📦 PinataService.ts dosyasını implement et
+3. 🪝 useTreeUpload.ts hook'unu oluştur
+4. 📱 Add Tree ekranını güncelle
+5. 📶 Offline queue sistemi ekle
+6. 🧪 Test ve doğrulama yap
+7. 🔗 Blokzincir entegrasyonuna geç
+
+═══════════════════════════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════════════════════════
+
+⏳ HAFTA 3 - EKSTRA ÖZELLİKLER & GÜVENLİK (BEKLİYOR - 0/8 TASK)
+
+🔐 Güvenlik:
+⏳ Veri imzalama (opsiyonel) - Mobil cihaz kendi cüzdan anahtarıyla JSON paketini imzalama
+⏳ Sahte UID koruması - Böylece sahte UID girilmesi zorlaşır
+
+🛰️ Uydu Verisi:
+⏳ Sentinel-2 API entegrasyonu
+⏳ Google Earth Engine entegrasyonu
+⏳ Uydu verisini JSON'a ekleme ve IPFS'e yükleme
+
+📊 Geçmiş Veriler (Batuhan ile koordineli):
+⏳ Geçmiş veriler ekranı oluşturma
+⏳ getByRfid(rfid) ile kontrattan CID alma
+⏳ IPFS'ten JSON'u çekip geçmiş konum/uydu kayıtlarını gösterme
+
+🧪 Final Test:
+⏳ Güvenlik katmanı ve uydu verisiyle sistemin sağlam ve görsel hale gelmesi
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 GENEL İLERLEME DURUMU
+
+✅ Tamamlanan: 7/21 task (%33)
+⏳ Bekleyen: 14/21 task (%67)
+
+🎯 HAFTA 1: %100 TAMAMLANDI! 🎉
+⏳ HAFTA 2: %0 - IPFS entegrasyonu bekliyor
+⏳ HAFTA 3: %0 - Güvenlik ve uydu verisi bekliyor
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🚀 SONRAKI ADIMLAR VE ÖNERİLER
+
+1. ✅ Hafta 1 başarıyla tamamlandı - Tebrikler!
+2. 🎯 Hafta 2 için IPFS seçimi yapın (Pinata vs Infura)
+3. 👥 Zeynep ile akıllı sözleşme koordinasyonu
+4. 👥 Batuhan ile geçmiş veriler ekranı planlaması
+5. 📱 WalletConnect/MetaMask entegrasyonu araştırması
+
+═══════════════════════════════════════════════════════════════════════════════
+
+💡 TEKNİK NOTLAR
+
+📱 Mevcut Teknoloji Stack:
+- React Native/Expo
+- react-native-nfc-manager (v3.14.8)
+- expo-location (v18.0.10)
+- TypeScript
+- React Native Paper UI
+
+🔧 Çözülen Sorunlar:
+- Metro bundler expo-location hatası
+- NFC permission yönetimi
+- GPS konum doğruluk kontrolü
+- Input alanları sadece okunabilir yapma
+- Ağaç ID "TR-UID" formatı
+
+🎯 Başarı Kriterleri:
+- NFC okuma %95+ başarı oranı
+- 3 saniye altında okuma süresi
+- Memory leak yok
+- Crash yok
+- Anlaşılır error mesajları
+
+═══════════════════════════════════════════════════════════════════════════════

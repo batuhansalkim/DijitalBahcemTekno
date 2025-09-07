@@ -405,8 +405,9 @@ export default function EditTreeScreen() {
                 style={[styles.input, styles.rfidInput, { color: '#000' }]}
                 outlineColor="#E0E0E0"
                 activeOutlineColor="#2E7D32"
-                placeholder="RFID etiket kodunu girin veya NFC ile okuyun"
+                placeholder="NFC ile RFID Oku"
                 textColor="#000"
+                editable={false}
               />
               <Button
                 mode="outlined"

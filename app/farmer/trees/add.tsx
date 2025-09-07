@@ -68,14 +68,32 @@ const GARDENS = [
 
 export default function AddTreeScreen() {
   // NFC Reader Hook
-  const { state, uid, error, read, showTutorial, showSuccess, showTutorialModal, hideTutorialModal, hideSuccessModal } = useNfcReader();
+  const { state, uid, error, read, readWithLocation, location, showTutorial, showSuccess, showTutorialModal, hideTutorialModal, hideSuccessModal } = useNfcReader();
   
-  // UID okunduğunda forma ekle
+  // UID okunduğunda forma ekle ve ağaç ID'sini güncelle
   useEffect(() => {
     if (uid) {
-      setForm(prev => ({ ...prev, rfidCode: uid }));
+      const newTreeId = generateTreeId(uid);
+      setForm(prev => ({ 
+        ...prev, 
+        rfidCode: uid,
+        treeId: newTreeId
+      }));
     }
   }, [uid]);
+
+  // Konum okunduğunda forma ekle
+  useEffect(() => {
+    if (location) {
+      setForm(prev => ({ 
+        ...prev, 
+        location: {
+          latitude: location.lat.toString(),
+          longitude: location.lon.toString()
+        }
+      }));
+    }
+  }, [location]);
   
   const [form, setForm] = useState<TreeForm>({
     name: '',
@@ -111,7 +129,10 @@ export default function AddTreeScreen() {
     }
   }, [uid]);
 
-  const generateTreeId = () => {
+  const generateTreeId = (rfidUid?: string) => {
+    if (rfidUid) {
+      return `TR-${rfidUid}`;
+    }
     const timestamp = Date.now().toString().slice(-6);
     const random = Math.random().toString(36).substring(2, 5).toUpperCase();
     return `TR-${timestamp}-${random}`;
@@ -370,12 +391,13 @@ export default function AddTreeScreen() {
                 style={[styles.input, styles.rfidInput, { color: '#000' }]}
                 outlineColor="#E0E0E0"
                 activeOutlineColor="#2E7D32"
-                placeholder="RFID etiket kodunu girin veya NFC ile okuyun"
+                placeholder="NFC ile RFID Oku"
                 textColor="#000"
+                editable={false}
               />
               <Button
                 mode="outlined"
-                onPress={showTutorialModal}
+                onPress={readWithLocation}
                 loading={state === 'reading'}
                 disabled={state === 'reading'}
                 style={styles.nfcButton}
@@ -384,7 +406,7 @@ export default function AddTreeScreen() {
                 icon="nfc"
                 labelStyle={{ fontSize: 12 }}
               >
-                {state === 'reading' ? 'Okunuyor...' : 'NFC Oku'}
+                {state === 'reading' ? 'Okunuyor...' : 'NFC + Konum Oku'}
               </Button>
             </View>
             {errors.rfidCode && <Text style={styles.errorText}>{errors.rfidCode}</Text>}
@@ -404,8 +426,9 @@ export default function AddTreeScreen() {
                   style={[styles.input, { color: '#000' }]}
                   outlineColor="#E0E0E0"
                   activeOutlineColor="#2E7D32"
-                  placeholder="40.7128"
+                  placeholder="NFC ile otomatik alınacak"
                   textColor="#000"
+                  editable={false}
                 />
               </View>
 
@@ -423,8 +446,9 @@ export default function AddTreeScreen() {
                   style={[styles.input, { color: '#000' }]}
                   outlineColor="#E0E0E0"
                   activeOutlineColor="#2E7D32"
-                  placeholder="-74.0060"
+                  placeholder="NFC ile otomatik alınacak"
                   textColor="#000"
+                  editable={false}
                 />
               </View>
             </View>
@@ -434,12 +458,12 @@ export default function AddTreeScreen() {
               <Text style={styles.label}>Ağaç ID</Text>
               <View style={styles.treeIdBox}>
                 <Text style={styles.treeIdText}>
-                  {form.treeId || generateTreeId()}
+                  {form.treeId || generateTreeId(form.rfidCode)}
                 </Text>
                 <IconButton
                   icon="refresh"
                   size={20}
-                  onPress={() => setForm((prev) => ({ ...prev, treeId: generateTreeId() }))}
+                  onPress={() => setForm((prev) => ({ ...prev, treeId: generateTreeId(form.rfidCode) }))}
                   iconColor="#2E7D32"
                 />
               </View>
