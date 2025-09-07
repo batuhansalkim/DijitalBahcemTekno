@@ -9,13 +9,22 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Bu uygulama ağaçların konumunu kaydetmek için konum bilgisine ihtiyaç duyar."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.NFC",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ],
+      "package": "com.ahmetsoftware3281.DijitalBahcem"
     },
     "web": {
       "bundler": "metro",
@@ -32,10 +41,24 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "react-native-nfc-manager",
+        {
+          "nfcPermission": "Allow $(PRODUCT_NAME) to use NFC to read RFID tags"
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "40702638-ac3f-4714-bc2a-ed42b1214813"
+      }
     }
   }
 }

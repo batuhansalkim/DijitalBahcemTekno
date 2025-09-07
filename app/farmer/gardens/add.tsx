@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { Text, TextInput, Button, Surface, IconButton, Chip } from 'react-native-paper';
 import { router } from 'expo-router';
@@ -6,6 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { TextInput as RNTextInput } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import { useNfcReader } from '../../hooks/useNfcReader';
 
 interface GardenForm {
   name: string;
@@ -27,6 +28,7 @@ interface GardenForm {
   establishmentYear: string;
   maxTreeCapacity: string;
   averageYield: string;
+  rfidCode: string;
 }
 
 const TREE_TYPES = [
@@ -80,6 +82,9 @@ const CERTIFICATIONS = [
 ];
 
 export default function AddGardenScreen() {
+  // NFC Reader Hook
+  const { state, uid, error, read } = useNfcReader();
+  
   const [form, setForm] = useState<GardenForm>({
     name: '',
     location: '',
@@ -100,9 +105,17 @@ export default function AddGardenScreen() {
     establishmentYear: '',
     maxTreeCapacity: '',
     averageYield: '',
+    rfidCode: '',
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof GardenForm, string>>>({});
+
+  // UID'yi forma otomatik doldur
+  useEffect(() => {
+    if (uid) {
+      setForm(prev => ({ ...prev, rfidCode: uid }));
+    }
+  }, [uid]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -166,6 +179,7 @@ export default function AddGardenScreen() {
     if (form.images.length === 0) newErrors.images = 'En az bir fotoğraf ekleyin';
     if (!form.contactPhone) newErrors.contactPhone = 'İletişim telefonu gereklidir';
     if (!form.contactEmail) newErrors.contactEmail = 'İletişim e-postası gereklidir';
+    if (!form.rfidCode) newErrors.rfidCode = 'RFID kodu gereklidir';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -317,6 +331,41 @@ export default function AddGardenScreen() {
               />
               {errors.contactEmail && <Text style={styles.errorText}>{errors.contactEmail}</Text>}
             </View>
+          </Surface>
+
+          {/* RFID ve Konum */}
+          <Surface style={styles.formCard} elevation={3}>
+            <Text style={styles.sectionTitle}>RFID ve Konum</Text>
+            
+            <View style={styles.rfidContainer}>
+              <TextInput
+                label="RFID Kodu"
+                value={form.rfidCode}
+                onChangeText={(text) => setForm((prev) => ({ ...prev, rfidCode: text }))}
+                mode="outlined"
+                error={!!errors.rfidCode}
+                style={[styles.input, styles.rfidInput]}
+                outlineColor="#E0E0E0"
+                activeOutlineColor="#2E7D32"
+                placeholder="NFC ile RFID Oku"
+                textColor="#000"
+                editable={false}
+              />
+              <Button
+                mode="outlined"
+                onPress={read}
+                loading={state === 'reading'}
+                disabled={state === 'reading'}
+                style={styles.nfcButton}
+                buttonColor="#2E7D32"
+                textColor="#fff"
+                icon="nfc"
+                labelStyle={{ fontSize: 12 }}
+              >
+                {state === 'reading' ? 'Okunuyor...' : 'NFC Oku'}
+              </Button>
+            </View>
+            {errors.rfidCode && <Text style={styles.errorText}>{errors.rfidCode}</Text>}
           </Surface>
 
           {/* Tarımsal Özellikler */}
@@ -512,4 +561,7 @@ const styles = StyleSheet.create({
   addImageButton: { height: 100, justifyContent: 'center', width: 100 },
   bottomBar: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#fff', padding: 16, borderTopLeftRadius: 16, borderTopRightRadius: 16, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 8 },
   saveBtn: { borderRadius: 12, paddingVertical: 10, fontWeight: 'bold', fontSize: 16 },
+  rfidContainer: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginBottom: 12 },
+  rfidInput: { flex: 1 },
+  nfcButton: { borderRadius: 8, minHeight: 48, paddingHorizontal: 12 },
 }); 
