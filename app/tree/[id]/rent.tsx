@@ -13,6 +13,7 @@ import {
   Portal,
   Surface,
   IconButton,
+  Chip,
 } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -100,6 +101,8 @@ export default function RentScreen() {
   };
 
   const handleRentConfirm = () => {
+    console.log('🔄 Ödeme sayfasına yönlendirme başlatıldı...');
+    
     if (!rentalPeriod) {
       Alert.alert('Uyarı', 'Lütfen kiralama süresini seçin.');
       return;
@@ -113,8 +116,49 @@ export default function RentScreen() {
       return;
     }
 
-    // Kart ekleme/seçme sayfasına yönlendir
-    router.back();
+    const paymentParams = {
+      treeId: id,
+      amount: calculatePrice(),
+      rentalData: JSON.stringify({
+        period: rentalPeriod,
+        processing: processingOption,
+        organic: organicPreference,
+        treeName: TREE_DATA.name,
+        treeLocation: TREE_DATA.location
+      })
+    };
+
+    console.log('💳 Ödeme parametreleri:', paymentParams);
+
+    try {
+      // Ödeme sayfasına yönlendir - Alternatif yöntemler dene
+      
+      // Yöntem 1: Basit string path
+      // router.push('/payment');
+      
+      // Ödeme sayfasına yönlendir
+      router.push({
+        pathname: '/payment',
+        params: paymentParams
+      });
+      
+      // Yöntem 3: Query string formatında (yedek)
+      // const queryString = Object.entries(paymentParams)
+      //   .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+      //   .join('&');
+      // router.push(`/payment?${queryString}`);
+      
+      console.log('✅ Yönlendirme komutu gönderildi');
+      
+      // 2 saniye sonra kontrol et
+      setTimeout(() => {
+        console.log('🔍 2 saniye sonra yönlendirme durumu kontrol ediliyor...');
+      }, 2000);
+      
+    } catch (error) {
+      console.error('❌ Yönlendirme hatası:', error);
+      Alert.alert('Hata', 'Ödeme sayfasına yönlendirilemedi. Konsol loglarını kontrol edin.');
+    }
   };
 
   return (
@@ -425,12 +469,12 @@ export default function RentScreen() {
         </View>
         <Button
           mode="contained"
-          onPress={() => router.push('/payment')}
+          onPress={handleRentConfirm}
           style={styles.confirmButton}
           contentStyle={styles.confirmButtonContent}
           disabled={!isTermsAccepted || !rentalPeriod || !processingOption}
         >
-          Kirala ve Öde
+          Ödeme Sayfasına Git
         </Button>
       </View>
     </View>

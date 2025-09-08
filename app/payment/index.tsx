@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert, Modal, Image } from 'react-native';
-import { Text, Button, Card, RadioButton, TextInput, Surface, IconButton, Divider } from 'react-native-paper';
-import { router } from 'expo-router';
+import { Text, Button, Card, RadioButton, TextInput, Surface, IconButton, Divider, Chip } from 'react-native-paper';
+import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Mock servisleri import et
+import { walletService } from '../lib/wallet';
 
 const MOCK_CARDS = [
   { id: '1', name: 'Ziraat Bankası', last4: '4242', icon: 'credit-card' },
@@ -10,15 +14,61 @@ const MOCK_CARDS = [
 ];
 
 export default function PaymentScreen() {
+  const { treeId, amount, rentalData } = useLocalSearchParams();
   const [selectedCard, setSelectedCard] = useState('');
   const [showAddCard, setShowAddCard] = useState(false);
-  const [showWalletModal, setShowWalletModal] = useState(false);
   const [useWallet, setUseWallet] = useState(false);
   const [cards, setCards] = useState(MOCK_CARDS);
   const [cardName, setCardName] = useState('');
   const [cardNumber, setCardNumber] = useState('');
   const [cardCVC, setCardCVC] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadUserPaymentData();
+  }, []);
+
+  const loadUserPaymentData = async () => {
+    try {
+      setLoading(true);
+      
+      // Kiralama verilerini parse et
+      if (rentalData) {
+        try {
+          const parsedData = JSON.parse(rentalData as string);
+          console.log('Kiralama verileri:', parsedData);
+        } catch (error) {
+          console.error('Kiralama verileri parse edilemedi:', error);
+        }
+      }
+
+      // Cüzdan durumunu kontrol et
+      const walletData = await AsyncStorage.getItem('walletConnected');
+      const addressData = await AsyncStorage.getItem('walletAddress');
+      
+      if (walletData === 'true' && addressData) {
+        setWalletConnected(true);
+        setWalletAddress(addressData);
+        // Cüzdan bağlıysa varsayılan olarak crypto ödeme seç
+        setUseWallet(true);
+      }
+
+      // Kayıtlı kartları yükle
+      const savedCards = await AsyncStorage.getItem('savedCards');
+      if (savedCards) {
+        const parsedCards = JSON.parse(savedCards);
+        setCards([...MOCK_CARDS, ...parsedCards]);
+      }
+
+    } catch (error) {
+      console.error('Ödeme verileri yüklenirken hata:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddCard = () => {
     if (!cardName || !cardNumber || !cardCVC || !cardExpiry) {
@@ -30,34 +80,262 @@ export default function PaymentScreen() {
     setCardName(''); setCardNumber(''); setCardCVC(''); setCardExpiry('');
   };
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (useWallet) {
-      setShowWalletModal(true);
+      await handleCryptoPayment();
       return;
     }
     if (!selectedCard) {
       Alert.alert('Kart Seçimi', 'Lütfen bir kart seçin veya ekleyin.');
       return;
     }
-    router.push('/payment/success');
+    handleCardPayment();
   };
 
+  const handleCryptoPayment = async () => {
+    try {
+      const amount = walletConnected ? Math.round(Number(amount) * 0.85) : Number(amount);
+      
+      Alert.alert(
+        'MetaMask ile Ödeme 💰',
+        `Ödeme Tutarı: ${amount} ₺ (≈ 0.${Math.floor(Math.random() * 9) + 1} ETH)\n` +
+        `Gas Fee: ~0.002 ETH\n` +
+        `Toplam: ~0.${Math.floor(Math.random() * 9) + 1}2 ETH\n\n` +
+        `MetaMask uygulaması açılacak ve işlemi onaylamanız istenecek.`,
+        [
+          { text: 'İptal', style: 'cancel' },
+          { 
+            text: 'MetaMask\'ı Aç',
+            onPress: () => processMetaMaskPayment(amount)
+          }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Hata', 'Kripto ödeme başlatılamadı');
+    }
+  };
+
+  const processMetaMaskPayment = async (amount: number) => {
+    try {
+      // MetaMask simülasyonu
+      Alert.alert(
+        'İşlem Onaylanıyor... ⏳',
+        'MetaMask\'ta işlemi onayladınız.\nBlockchain\'de onay bekleniyor...\n\nBu işlem 1-3 dakika sürebilir.',
+        [
+          {
+            text: 'İşlem Durumunu Gör',
+            onPress: () => {
+              // Başarı simülasyonu
+              setTimeout(() => {
+                Alert.alert(
+                  'Ödeme Başarılı! ✅',
+                  `${amount} ₺ değerinde kripto ödeme tamamlandı.\n\n` +
+                  `İşlem Hash: 0x${Math.random().toString(16).substring(2, 18)}...\n` +
+                  `Blok: ${Math.floor(Math.random() * 1000000) + 18000000}\n\n` +
+                  `Etherscan\'da görüntüleyebilirsiniz.`,
+                  [
+                    {
+                      text: 'Tamam',
+                      onPress: () => router.push('/payment/success')
+                    }
+                  ]
+                );
+              }, 2000);
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('İşlem Başarısız', 'Ödeme işlemi iptal edildi veya başarısız oldu');
+    }
+  };
+
+  const handleCardPayment = () => {
+    Alert.alert(
+      'Kart ile Ödeme 💳',
+      `Seçilen Kart: ${cards.find(c => c.id === selectedCard)?.name}\n` +
+      `Tutar: ${amount} ₺\n\n` +
+      `3D Secure doğrulama sayfasına yönlendirileceksiniz.`,
+      [
+        { text: 'İptal', style: 'cancel' },
+        {
+          text: 'Ödemeyi Onayla',
+          onPress: () => {
+            // Kart ödeme simülasyonu
+            Alert.alert(
+              '3D Secure Doğrulama 🔐',
+              'Telefonunuza gelen SMS kodunu girin:\n\n' +
+              `Kod: ${Math.floor(Math.random() * 900000) + 100000}`,
+              [
+                { text: 'İptal', style: 'cancel' },
+                {
+                  text: 'Kodu Girdim',
+                  onPress: () => {
+                    Alert.alert(
+                      'Ödeme Başarılı! ✅',
+                      `${amount} ₺ tutarında kart ödemesi tamamlandı.`,
+                      [
+                        {
+                          text: 'Tamam',
+                          onPress: () => router.push('/payment/success')
+                        }
+                      ]
+                    );
+                  }
+                }
+              ]
+            );
+          }
+        }
+      ]
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text>Ödeme bilgileri yükleniyor...</Text>
+      </View>
+    );
+  }
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Ödeme Yöntemi Seçin</Text>
-      <Divider style={{ marginVertical: 16 }} />
-      <View style={styles.methodRow}>
-        <View style={[styles.methodBox, !useWallet && styles.selectedMethod]}>
-          <RadioButton.Android value="card" status={!useWallet ? 'checked' : 'unchecked'} onPress={() => setUseWallet(false)} color="#2D6A4F" />
-          <MaterialCommunityIcons name="credit-card" size={28} color={!useWallet ? '#2D6A4F' : '#888'} style={{ marginRight: 8 }} />
-          <Text style={styles.methodLabel} numberOfLines={1}>Kredi/Banka Kartı</Text>
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <IconButton icon="arrow-left" size={28} iconColor="#fff" onPress={() => router.back()} />
+        <Text style={styles.headerTitle}>Ödeme Yöntemi</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Kiralama Özeti */}
+        <Surface style={styles.summaryCard} elevation={4}>
+          <View style={styles.summaryHeader}>
+            <MaterialCommunityIcons name="receipt" size={24} color="#2D6A4F" />
+            <Text style={styles.summaryTitle}>Ödeme Özeti</Text>
+          </View>
+          <View style={styles.summaryContent}>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Toplam Tutar</Text>
+              <Text style={styles.summaryAmount}>{amount} ₺</Text>
+            </View>
+            {useWallet && walletConnected && (
+              <>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Kripto İndirimi (%15)</Text>
+                  <Text style={styles.discountAmount}>-{Math.round(Number(amount) * 0.15)} ₺</Text>
+                </View>
+                <Divider style={styles.summaryDivider} />
+                <View style={styles.summaryRow}>
+                  <Text style={styles.finalAmountLabel}>Net Tutar</Text>
+                  <Text style={styles.finalAmount}>{Math.round(Number(amount) * 0.85)} ₺</Text>
+                </View>
+              </>
+            )}
+          </View>
+        </Surface>
+        {/* Ödeme Yöntemleri */}
+        <Surface style={styles.methodsSection} elevation={2}>
+          <View style={styles.methodsHeader}>
+            <MaterialCommunityIcons name="credit-card" size={24} color="#2D6A4F" />
+            <Text style={styles.methodsTitle}>Ödeme Yöntemi Seçin</Text>
+          </View>
+          
+          <View style={styles.methodsList}>
+            {/* Kart Ödeme */}
+            <View style={[
+              styles.methodCard, 
+              !useWallet && styles.selectedMethodCard
+            ]}>
+              <View style={styles.methodCardContent}>
+                <View style={styles.methodCardLeft}>
+                  <View style={[
+                    styles.methodIcon,
+                    !useWallet && styles.selectedMethodIcon
+                  ]}>
+                    <MaterialCommunityIcons 
+                      name="credit-card" 
+                      size={28} 
+                      color={!useWallet ? '#fff' : '#2D6A4F'} 
+                    />
+                  </View>
+                  <View style={styles.methodInfo}>
+                    <Text style={[
+                      styles.methodTitle,
+                      !useWallet && styles.selectedMethodTitle
+                    ]}>
+                      Kredi/Banka Kartı
+                    </Text>
+                    <Text style={styles.methodDescription}>
+                      Visa, MasterCard, Troy kabul edilir
+                    </Text>
+                  </View>
+                </View>
+                <RadioButton.Android 
+                  value="card" 
+                  status={!useWallet ? 'checked' : 'unchecked'} 
+                  onPress={() => setUseWallet(false)} 
+                  color="#2D6A4F" 
+                />
+              </View>
+            </View>
+
+            {/* Dijital Cüzdan */}
+            <View style={[
+              styles.methodCard, 
+              useWallet && styles.selectedMethodCard,
+              !walletConnected && styles.disabledMethodCard
+            ]}>
+              <View style={styles.methodCardContent}>
+                <View style={styles.methodCardLeft}>
+                  <View style={[
+                    styles.methodIcon,
+                    useWallet && walletConnected && styles.selectedMethodIcon,
+                    !walletConnected && styles.disabledMethodIcon
+                  ]}>
+                    <MaterialCommunityIcons 
+                      name="wallet" 
+                      size={28} 
+                      color={
+                        !walletConnected ? '#CCC' : 
+                        useWallet ? '#fff' : '#2D6A4F'
+                      } 
+                    />
+                  </View>
+                  <View style={styles.methodInfo}>
+                    <Text style={[
+                      styles.methodTitle,
+                      useWallet && walletConnected && styles.selectedMethodTitle,
+                      !walletConnected && styles.disabledMethodTitle
+                    ]}>
+                      Dijital Cüzdan
+                      {walletConnected && (
+                        <Text style={styles.discountBadge}> %15 İndirim</Text>
+                      )}
+                    </Text>
+                    <Text style={[
+                      styles.methodDescription,
+                      !walletConnected && styles.disabledText
+                    ]}>
+                      {walletConnected ? 
+                        `${walletAddress?.substring(0, 10)}...${walletAddress?.substring(38)}` :
+                        'Profil sayfasından cüzdanınızı bağlayın'
+                      }
+                    </Text>
+                  </View>
+                </View>
+                <RadioButton.Android 
+                  value="wallet" 
+                  status={useWallet ? 'checked' : 'unchecked'} 
+                  onPress={() => walletConnected ? setUseWallet(true) : Alert.alert('Cüzdan Bağlı Değil', 'Önce profil sayfasından cüzdanınızı bağlamanız gerekiyor.')} 
+                  color="#2D6A4F" 
+                  disabled={!walletConnected}
+                />
         </View>
-        <View style={[styles.methodBox, useWallet && styles.selectedMethod]}>
-          <RadioButton.Android value="wallet" status={useWallet ? 'checked' : 'unchecked'} onPress={() => setUseWallet(true)} color="#2D6A4F" />
-          <MaterialCommunityIcons name="wallet" size={28} color={useWallet ? '#2D6A4F' : '#888'} style={{ marginRight: 8 }} />
-          <Text style={styles.methodLabel} numberOfLines={1}>Dijital Cüzdan <Text style={styles.walletDiscount}>%30 indirim</Text></Text>
         </View>
       </View>
+        </Surface>
       {!useWallet && (
         <View style={styles.cardSection}>
           <Text style={styles.sectionTitle}>Kart Seçimi</Text>
@@ -76,9 +354,20 @@ export default function PaymentScreen() {
           </Button>
         </View>
       )}
-      <Button mode="contained" style={styles.payButton} onPress={handlePayment}>
-        Ödemeyi Onayla
+        <Button 
+          mode="contained" 
+          style={styles.payButton} 
+          labelStyle={styles.payButtonLabel}
+          onPress={handlePayment}
+          disabled={!useWallet && !selectedCard}
+        >
+          {useWallet ? 
+            `${walletConnected ? Math.round(Number(amount) * 0.85) : amount} ₺ - Kripto ile Öde` :
+            `${amount} ₺ - Kart ile Öde`
+          }
       </Button>
+      </ScrollView>
+      
       {/* Kart Ekle Modal */}
       <Modal visible={showAddCard} animationType="slide" transparent onRequestClose={() => setShowAddCard(false)}>
         <View style={styles.modalOverlay}>
@@ -95,32 +384,193 @@ export default function PaymentScreen() {
           </View>
         </View>
       </Modal>
-      {/* Dijital Cüzdan Modal */}
-      <Modal visible={showWalletModal} animationType="slide" transparent onRequestClose={() => setShowWalletModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Dijital Cüzdan ile Öde</Text>
-            <Text style={styles.walletInfo}>WalletConnect ile QR kodu mobil cüzdanınızdan okutun.</Text>
-            <View style={styles.qrPlaceholder}>
-              <MaterialCommunityIcons name="qrcode-scan" size={64} color="#2D6A4F" />
-            </View>
-            <Button mode="contained" onPress={() => { setShowWalletModal(false); router.push('/payment/success'); }} style={styles.payButton}>Ödeme Onaylandı</Button>
-            <Button mode="text" onPress={() => setShowWalletModal(false)} style={styles.cancelButton}>İptal</Button>
-          </View>
         </View>
-      </Modal>
-    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, backgroundColor: '#fff', flexGrow: 1, minHeight: '100%' },
-  title: { fontSize: 22, fontWeight: 'bold', color: '#1B4332', marginBottom: 8, textAlign: 'center' },
-  methodRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 18, gap: 8 },
-  methodBox: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', borderRadius: 8, padding: 8, marginHorizontal: 0, borderWidth: 1, borderColor: '#E0E0E0', minWidth: 0 },
-  selectedMethod: { borderColor: '#2D6A4F', backgroundColor: '#E8F5E9' },
-  methodLabel: { fontSize: 15, color: '#222', fontWeight: 'bold', flexShrink: 1 },
-  walletDiscount: { color: '#2D6A4F', fontWeight: 'bold', fontSize: 15 },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#F5F7F3',
+  },
+  
+  // Header
+  header: {
+    backgroundColor: '#2D6A4F',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+    paddingTop: 8,
+    paddingBottom: 16,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  
+  // Özet Kartı
+  summaryCard: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+  },
+  summaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  summaryTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1B4332',
+    marginLeft: 12,
+  },
+  summaryContent: {
+    gap: 12,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    fontSize: 16,
+    color: '#666',
+  },
+  summaryAmount: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1B4332',
+  },
+  discountAmount: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#E53E3E',
+  },
+  summaryDivider: {
+    marginVertical: 8,
+  },
+  finalAmountLabel: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2D6A4F',
+  },
+  finalAmount: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2D6A4F',
+  },
+
+  // Ödeme Yöntemleri
+  methodsSection: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+  },
+  methodsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  methodsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1B4332',
+    marginLeft: 12,
+  },
+  methodsList: {
+    gap: 12,
+  },
+  methodCard: {
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#F8F9FA',
+    overflow: 'hidden',
+  },
+  selectedMethodCard: {
+    borderColor: '#2D6A4F',
+    backgroundColor: '#E8F5E9',
+  },
+  disabledMethodCard: {
+    opacity: 0.6,
+    backgroundColor: '#F0F0F0',
+  },
+  methodCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  methodCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  methodIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#E8F5E9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  selectedMethodIcon: {
+    backgroundColor: '#2D6A4F',
+  },
+  disabledMethodIcon: {
+    backgroundColor: '#E0E0E0',
+  },
+  methodInfo: {
+    flex: 1,
+  },
+  methodTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1B4332',
+    marginBottom: 4,
+  },
+  selectedMethodTitle: {
+    color: '#2D6A4F',
+  },
+  disabledMethodTitle: {
+    color: '#999',
+  },
+  methodDescription: {
+    fontSize: 14,
+    color: '#666',
+  },
+  discountBadge: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#E53E3E',
+  },
+  disabledText: { 
+    color: '#999' 
+  },
   cardSection: { marginVertical: 12, width: '100%' },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#1B4332', marginBottom: 8 },
   paymentCard: { marginBottom: 8, borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 8, backgroundColor: '#F8F9FA', width: '100%' },
@@ -129,7 +579,25 @@ const styles = StyleSheet.create({
   cardText: { fontSize: 16, color: '#222', marginLeft: 12, flex: 1 },
   addCardButton: { marginTop: 8, borderColor: '#2D6A4F', borderRadius: 8 },
   addCardButtonLabel: { color: '#2D6A4F', fontWeight: 'bold' },
-  payButton: { marginTop: 20, backgroundColor: '#2D6A4F', borderRadius: 8 },
+  
+  // Ödeme Butonu
+  payButton: { 
+    marginTop: 24,
+    backgroundColor: '#2D6A4F', 
+    borderRadius: 16,
+    paddingVertical: 8,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  payButtonLabel: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    paddingVertical: 4,
+  },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
   modalContainer: { backgroundColor: '#fff', padding: 24, borderRadius: 20, width: '90%' },
   modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1B4332', marginBottom: 16 },
@@ -137,6 +605,4 @@ const styles = StyleSheet.create({
   inputRow: { flexDirection: 'row', marginBottom: 12 },
   saveCardButton: { backgroundColor: '#2D6A4F', borderRadius: 12, marginBottom: 8 },
   cancelButton: { marginTop: 0 },
-  walletInfo: { fontSize: 15, color: '#333', marginBottom: 16 },
-  qrPlaceholder: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#E8F5E9', borderRadius: 16, height: 120, marginBottom: 16 },
 }); 

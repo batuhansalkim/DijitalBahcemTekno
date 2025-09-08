@@ -4,6 +4,10 @@ import { Text, Avatar, List, Button, Surface, Divider, Switch, Chip, IconButton 
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Mock servisleri import et
+import { walletService } from '../lib/wallet';
+import { blockchainService } from '../lib/blockchain';
+
 const { width } = Dimensions.get('window');
 
 // Örnek kullanıcı verisi
@@ -172,16 +176,30 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleWalletConnect = () => {
+  const handleWalletConnect = async () => {
     setShowQRModal(false);
-    // Simulate wallet connection process
-    setTimeout(() => {
+    
+    try {
+      // Gerçek mock wallet servisini kullan
+      const result = await walletService.connectMetaMask();
+      
       setWalletConnected(true);
+      
+      // AsyncStorage'a kaydet
+      await AsyncStorage.setItem('walletConnected', 'true');
+      await AsyncStorage.setItem('walletAddress', result.address || '');
+      
       Alert.alert(
-        'Bağlantı Başarılı!', 
-        `Cüzdan adresiniz: ${USER_DATA.walletAddress}\n\nArtık kripto para ile ödeme yapabilir ve %30 indirim kazanabilirsiniz!`
+        'Cüzdan Bağlandı! 🎉',
+        `Adres: ${result.address?.substring(0, 10)}...${result.address?.substring(38)}\n` +
+        `Bakiye: ${result.balance} ETH\n` +
+        `Ağ: ${result.network}\n\n` +
+        `🎁 %15 kripto indirimi aktif!\n` +
+        `🔗 Blockchain işlemleri hazır!`
       );
-    }, 2000);
+    } catch (error) {
+      Alert.alert('Bağlantı Hatası', 'Cüzdan bağlanamadı');
+    }
   };
 
   return (
@@ -290,7 +308,7 @@ export default function ProfileScreen() {
           <List.Item
             title="Ödeme Yöntemleri"
             left={(props) => <List.Icon {...props} icon="credit-card" color="#2D6A4F" />}
-            onPress={() => Alert.alert('Ödeme Yöntemleri', 'Ödeme yöntemleri sayfası açılacak')}
+            onPress={() => router.push('/payment-methods')}
             style={styles.listItem}
             titleStyle={styles.listItemTitle}
           />

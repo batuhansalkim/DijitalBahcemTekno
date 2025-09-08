@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
+import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Dimensions, Alert } from 'react-native';
 import { Text, TextInput, Button, HelperText, IconButton, Surface } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -51,17 +51,24 @@ export default function LoginScreen() {
       const fakeUsers = [
         {
           id: '1',
-          email: 'batu@gmail.com',
+          email: 'batu@',
           password: '123456',
           userType: 'user',
           name: 'Test Kullanıcı'
         },
         {
           id: '2',
-          email: 'ciftci@gmail.com',
+          email: 'ciftci@',
           password: '123456',
           userType: 'farmer',
           name: 'Test Çiftçi'
+        },
+        {
+          id: '3',
+          email: 'test@test.com',
+          password: '123456',
+          userType: 'user',
+          name: 'Hızlı Test Kullanıcı'
         }
       ];
 
@@ -84,9 +91,9 @@ export default function LoginScreen() {
 
       // Kullanıcı tipine göre yönlendirme
       if (user.userType === 'farmer') {
-        router.replace('/farmer/');
+        router.replace('/farmer');
       } else {
-        router.replace('/(tabs)/');
+        router.replace('/(tabs)');
       }
     } catch (error) {
       console.error('Giriş hatası:', error);
@@ -197,7 +204,10 @@ export default function LoginScreen() {
 
             <Button
               mode="text"
-              onPress={() => router.push('/auth/forgot-password')}
+              onPress={() => {
+                // Şimdilik alert göster, sonra forgot-password sayfası eklenecek
+                Alert.alert('Bilgi', 'Şifre sıfırlama özelliği yakında eklenecek');
+              }}
               style={styles.forgotPassword}
               textColor="#666"
             >
