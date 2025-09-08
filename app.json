@@ -58,7 +58,15 @@
       },
       "eas": {
         "projectId": "40702638-ac3f-4714-bc2a-ed42b1214813"
-      }
+      },
+      "pinataApiKey": "",
+      "pinataSecretKey": "",
+      "pinataJWT": "",
+      "registryContract": "",
+      "verifierContract": "",
+      "accessControlContract": "",
+      "infuraKey": "",
+      "devMode": true
     }
   }
 }

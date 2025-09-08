@@ -1,7 +1,12 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, Dimensions, Alert } from 'react-native';
 import { Text, Surface, Card, Button, ProgressBar, IconButton, Avatar, Chip } from 'react-native-paper';
 import { router } from 'expo-router';
+
+// Mock servisleri import et
+import { ahmetBLEService } from '../lib/ahmet-integration';
+import { blockchainService } from '../lib/blockchain';
+import { ipfsService } from '../lib/ipfs';
 
 const { width } = Dimensions.get('window');
 
@@ -93,6 +98,98 @@ const RENTAL_OPTIONS = [
 ];
 
 export default function HomeScreen() {
+  const [scanningRFID, setScanningRFID] = useState(false);
+
+  // RFID Okuma Fonksiyonu
+  const handleScanRFID = async () => {
+    try {
+      setScanningRFID(true);
+      
+      // Ahmet'in RFID cihazından veri al
+      const rfidData = await ahmetBLEService.readRFIDData();
+      
+      if (rfidData) {
+        Alert.alert(
+          'RFID Okundu! 📱',
+          `RFID: ${rfidData.rfid}\n` +
+          `Cihaz ID: ${rfidData.deviceId}\n` +
+          `Zaman: ${new Date(rfidData.timestamp).toLocaleString()}\n\n` +
+          `Bu RFID ile ne yapmak istiyorsunuz?`,
+          [
+            { text: 'İptal', style: 'cancel' },
+            { 
+              text: 'Ağaç Bilgilerini Gör', 
+              onPress: () => handleSearchTree(rfidData.rfid)
+            },
+            { 
+              text: 'Yeni Ağaç Kaydet', 
+              onPress: () => handleRegisterTree(rfidData)
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      Alert.alert('RFID Okuma Hatası', 'RFID okunamadı, tekrar deneyin');
+    } finally {
+      setScanningRFID(false);
+    }
+  };
+
+  // Ağaç Arama
+  const handleSearchTree = async (rfid: string) => {
+    try {
+      const cid = await blockchainService.getCIDByRFID(rfid);
+      
+      if (cid) {
+        const treeData = await ipfsService.fetchFromIPFS(cid);
+        if (treeData) {
+          Alert.alert(
+            'Ağaç Bulundu! 🌳',
+            `İsim: ${treeData.name}\n` +
+            `Konum: ${treeData.location.address}\n` +
+            `Tür: ${treeData.treeInfo.type}\n` +
+            `Yaş: ${treeData.treeInfo.age} yıl\n` +
+            `Sağlık: %${treeData.health.score}\n` +
+            `Çiftçi: ${treeData.farmer.name}`
+          );
+        } else {
+          Alert.alert('Hata', 'Ağaç verileri okunamadı');
+        }
+      } else {
+        Alert.alert('Ağaç Bulunamadı', 'Bu RFID kayıtlı değil');
+      }
+    } catch (error) {
+      Alert.alert('Arama Hatası', 'Ağaç aranırken hata oluştu');
+    }
+  };
+
+  // Hızlı Ağaç Kaydı
+  const handleRegisterTree = async (rfidData: any) => {
+    Alert.alert(
+      'Hızlı Kayıt',
+      'Ağaç bilgilerini girin:',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { 
+          text: 'Detaylı Kayıt', 
+          onPress: () => {
+            // Mock kayıt işlemi
+            Alert.alert(
+              'Ağaç Kaydediliyor...',
+              'IPFS ve Blockchain entegrasyonu başlatıldı',
+              [
+                { 
+                  text: 'Tamam', 
+                  onPress: () => Alert.alert('Başarılı!', 'Ağaç kaydedildi 🌳')
+                }
+              ]
+            );
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
       {/* Hoşgeldin Kartı */}
@@ -109,6 +206,25 @@ export default function HomeScreen() {
             style={styles.welcomeIcon}
           />
         </View>
+      </Surface>
+
+      {/* RFID Okuma Butonu */}
+      <Surface style={styles.rfidSection}>
+        <View style={styles.rfidHeader}>
+          <Text style={styles.rfidTitle}>📱 RFID Okuyucu</Text>
+          <Text style={styles.rfidSubtitle}>Ağaç etiketini okut, bilgileri gör</Text>
+        </View>
+        <Button
+          mode="contained"
+          onPress={handleScanRFID}
+          loading={scanningRFID}
+          icon="nfc"
+          style={styles.rfidButton}
+          contentStyle={styles.rfidButtonContent}
+          labelStyle={styles.rfidButtonLabel}
+        >
+          {scanningRFID ? 'RFID Okunuyor...' : 'RFID Okut'}
+        </Button>
       </Surface>
 
       {/* Kiralama Seçenekleri */}
@@ -431,5 +547,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#2E7D32',
+  },
+  // RFID Section Styles
+  rfidSection: {
+    margin: 16,
+    padding: 20,
+    borderRadius: 16,
+    backgroundColor: '#E8F5E9',
+    elevation: 2,
+  },
+  rfidHeader: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  rfidTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1B4332',
+    marginBottom: 4,
+  },
+  rfidSubtitle: {
+    fontSize: 14,
+    color: '#2E7D32',
+    textAlign: 'center',
+  },
+  rfidButton: {
+    backgroundColor: '#2E7D32',
+    borderRadius: 12,
+  },
+  rfidButtonContent: {
+    height: 48,
+  },
+  rfidButtonLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

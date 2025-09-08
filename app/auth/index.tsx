@@ -51,6 +51,21 @@ export default function AuthScreen() {
             >
               Yeni Hesap Oluştur
             </Button>
+
+            {/* Hızlı Test Girişi */}
+            <View style={styles.divider}>
+              <Text style={styles.dividerText}>Hızlı Test</Text>
+            </View>
+
+            <Button
+              mode="contained"
+              onPress={() => router.push('/(tabs)' as any)}
+              style={[styles.button, styles.testButton]}
+              contentStyle={styles.buttonContent}
+              labelStyle={styles.buttonLabel}
+            >
+              🚀 Hızlı Giriş (Test)
+            </Button>
           </Surface>
         </View>
       </LinearGradient>
@@ -120,5 +135,18 @@ const styles = StyleSheet.create({
   },
   registerButtonLabel: {
     color: '#2E7D32',
+  },
+  divider: {
+    marginVertical: 16,
+    alignItems: 'center',
+  },
+  dividerText: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+  },
+  testButton: {
+    backgroundColor: '#FF6B35',
+    marginTop: 8,
   },
 }); 
