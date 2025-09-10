@@ -6,7 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { TextInput as RNTextInput } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import { useNfcReader } from '../../hooks/useNfcReader';
+import { useNfcReader } from '../../_hooks/useNfcReader';
 
 interface GardenForm {
   name: string;

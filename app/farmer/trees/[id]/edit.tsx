@@ -4,7 +4,7 @@ import { Text, TextInput, Button, Surface, IconButton, Chip } from 'react-native
 import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { useNfcReader } from '../../../hooks/useNfcReader';
+import { useNfcReader } from '../../../_hooks/useNfcReader';
 
 // Örnek ağaç verileri (gerçek uygulamada API'den gelecek)
 const TREES_DATA = [

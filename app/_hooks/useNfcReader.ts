@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert } from 'react-native';
-import { ensureNfcStarted, isNfcEnabled, openNfcSettings, readUidWithRetry } from '../services/nfcService';
-import { captureTreeLocation, GpsFix, checkLocationPermissions } from '../services/locationService';
+import { Alert, Linking } from 'react-native';
+import { ensureNfcStarted, isNfcEnabled, openNfcSettings, readUidWithRetry } from '../_services/nfcService';
+import { captureTreeLocation, GpsFix, checkLocationPermissions, requestLocationPermission, openLocationSettings } from '../_services/locationService';
 
 type NfcState = 'idle' | 'checking' | 'need-settings' | 'reading' | 'success' | 'error';
 
@@ -34,12 +34,19 @@ export function useNfcReader(): UseNfcReaderReturn {
   const [retryCount, setRetryCount] = useState<number>(0);
   const [showTutorial, setShowTutorial] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
+  const successAutoHideRef = useRef<NodeJS.Timeout | null>(null);
   const [location, setLocation] = useState<GpsFix | null>(null);
   const readingRef = useRef(false);
 
   // NFC Manager'ı başlat
   useEffect(() => {
     ensureNfcStarted();
+    return () => {
+      if (successAutoHideRef.current) {
+        clearTimeout(successAutoHideRef.current);
+        successAutoHideRef.current = null;
+      }
+    };
   }, []);
 
   // NFC durumunu kontrol et
@@ -116,9 +123,8 @@ export function useNfcReader(): UseNfcReaderReturn {
       console.log('📏 Uzunluk:', value.length, 'karakter');
       console.log('📅 Okuma Zamanı:', new Date().toLocaleString('tr-TR'));
       
-      // Tutorial modal'ı kapat ve success modal'ı göster
+      // Tutorial modal'ı kapat; başarı modalı gösterme
       setShowTutorial(false);
-      setShowSuccess(true);
     } catch (e: any) {
       const msg = String(e?.message || e);
       let uiMsg = 'Okuma başarısız. Tekrar deneyin.';
@@ -181,31 +187,27 @@ export function useNfcReader(): UseNfcReaderReturn {
       if (!isEnabled) {
         setState('need-settings');
         readingRef.current = false;
-        
-        Alert.alert(
-          'NFC Kapalı',
-          'NFC özelliği kapalı. NFC\'yi açmak için ayarlara gitmek ister misiniz?',
-          [
-            { text: 'İptal', style: 'cancel' },
-            { text: 'Ayarlara Git', onPress: goSettings }
-          ]
-        );
-        return;
+        await openNfcSettings();
+        return; // NFC açılmadan okumayı başlatma
       }
       
-      // Konum izinlerini kontrol et
+      // Konum izinlerini kontrol et ve gerekiyorsa iste
       const locationPermission = await checkLocationPermissions();
       if (!locationPermission.granted) {
-        Alert.alert(
-          'Konum İzni Gerekli',
-          'Ağaç konumunu kaydetmek için konum iznine ihtiyaç var. İzin vermek ister misiniz?',
-          [
-            { text: 'İptal', style: 'cancel' },
-            { text: 'İzin Ver', onPress: () => readWithLocation() }
-          ]
-        );
-        readingRef.current = false;
-        return;
+        if (locationPermission.canAskAgain) {
+          const grantedNow = await requestLocationPermission();
+          if (!grantedNow) {
+            setState('error');
+            readingRef.current = false;
+            await openLocationSettings();
+            return; // Konum izni verilmeden okumayı başlatma
+          }
+        } else {
+          setState('error');
+          readingRef.current = false;
+          await openLocationSettings();
+          return; // Kullanıcı tekrar sorulamıyorsa doğrudan ayarlara yönlendir
+        }
       }
       
       // RFID UID okuma
@@ -225,16 +227,10 @@ export function useNfcReader(): UseNfcReaderReturn {
       console.log('📏 Doğruluk:', gpsFix.accuracy_m, 'm');
       console.log('📅 Okuma Zamanı:', new Date().toLocaleString('tr-TR'));
       
-      // Tutorial modal'ı kapat ve success modal'ı göster
+      // Tutorial modal'ı kapat; başarı modalı gösterme
       setShowTutorial(false);
-      setShowSuccess(true);
       
-      // Başarı mesajı
-      Alert.alert(
-        'Ağaç Kaydedildi!',
-        `RFID UID: ${value}\nKonum: ${gpsFix.lat.toFixed(6)}, ${gpsFix.lon.toFixed(6)}\nDoğruluk: ${gpsFix.accuracy_m?.toFixed(1) || 'Bilinmiyor'}m`,
-        [{ text: 'Tamam' }]
-      );
+      // Başarı mesajı gösterme kaldırıldı (UI üzerindeki modal yeterli)
     } catch (e: any) {
       const msg = String(e?.message || e);
       let uiMsg = 'Okuma başarısız. Tekrar deneyin.';

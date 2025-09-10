@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Button } from 'react-native-paper';
-import { useNfcReader } from '../hooks/useNfcReader';
+import { useNfcReader } from '../_hooks/useNfcReader';
 
 interface NfcReaderProps {
   onUidRead: (uid: string) => void;

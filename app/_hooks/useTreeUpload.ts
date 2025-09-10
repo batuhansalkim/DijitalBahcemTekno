@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
-import PinataService, { TreeDataPackage } from '../services/pinataService';
+import PinataService, { TreeDataPackage } from '../_services/pinataService';
 
 // Hook return type
 interface UseTreeUploadReturn {
