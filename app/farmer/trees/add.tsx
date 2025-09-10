@@ -4,11 +4,11 @@ import { Text, TextInput, Button, Surface, IconButton, Chip, Divider, ProgressBa
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNfcReader } from '../../hooks/useNfcReader';
-import { useTreeUpload } from '../../hooks/useTreeUpload';
-import { TreeDataPackage } from '../../services/pinataService';
-import { NfcTutorialModal } from '../../components/NfcTutorialModal';
-import { SuccessModal } from '../../components/SuccessModal';
+import { useNfcReader } from '../../_hooks/useNfcReader';
+import { useTreeUpload } from '../../_hooks/useTreeUpload';
+import { TreeDataPackage } from '../../_services/pinataService';
+import { NfcTutorialModal } from '../../_components/NfcTutorialModal';
+import { SuccessModal } from '../../_components/SuccessModal';
 
 interface TreeForm {
   name: string;
@@ -480,7 +480,7 @@ export default function AddTreeScreen() {
               />
               <Button
                 mode="outlined"
-                onPress={readWithLocation}
+                onPress={showTutorialModal}
                 loading={state === 'reading'}
                 disabled={state === 'reading'}
                 style={styles.nfcButton}
@@ -800,15 +800,19 @@ export default function AddTreeScreen() {
       <NfcTutorialModal
         visible={showTutorial}
         onClose={hideTutorialModal}
-        onStartReading={read}
+        onStartReading={readWithLocation}
         isReading={state === 'reading'}
       />
       
-      {/* Success Modal */}
       <SuccessModal
         visible={showSuccess}
         uid={uid}
         onClose={hideSuccessModal}
+        title="RFID ve Konum Başarıyla Eklendi"
+        subtitle={location ? `${Number(location.lat).toFixed(6)}, ${Number(location.lon).toFixed(6)}` : undefined}
+        showUid={true}
+        durationMs={2500}
+        iconName={'check-circle'}
       />
     </View>
   );

@@ -1,23 +1,27 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Modal, Dimensions, Animated } from 'react-native';
 import { Text, Surface } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface SuccessModalProps {
   visible: boolean;
-  uid: string;
+  uid?: string;
   onClose: () => void;
+  title?: string;
+  subtitle?: string;
+  showUid?: boolean;
+  durationMs?: number;
+  iconName?: keyof typeof MaterialCommunityIcons.glyphMap;
 }
 
 const { width, height } = Dimensions.get('window');
 
-export function SuccessModal({ visible, uid, onClose }: SuccessModalProps) {
-  const scaleAnim = new Animated.Value(0);
-  const opacityAnim = new Animated.Value(0);
+export function SuccessModal({ visible, uid = '', onClose, title = 'İşlem Başarılı', subtitle, showUid = false, durationMs = 2500, iconName = 'check-circle' }: SuccessModalProps) {
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
-      // Animasyon başlat
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1,
@@ -32,14 +36,13 @@ export function SuccessModal({ visible, uid, onClose }: SuccessModalProps) {
         }),
       ]).start();
 
-      // 3 saniye sonra otomatik kapat
       const timer = setTimeout(() => {
         handleClose();
-      }, 3000);
+      }, durationMs);
 
       return () => clearTimeout(timer);
     }
-  }, [visible]);
+  }, [visible, durationMs, handleClose]);
 
   const handleClose = () => {
     Animated.parallel([
@@ -71,38 +74,23 @@ export function SuccessModal({ visible, uid, onClose }: SuccessModalProps) {
       <Animated.View style={[styles.overlay, { opacity: opacityAnim }]}>
         <Animated.View style={[styles.modal, { transform: [{ scale: scaleAnim }] }]}>
           <Surface style={styles.successCard}>
-            {/* Başarı İkonu */}
             <View style={styles.iconContainer}>
               <MaterialCommunityIcons 
-                name="check-circle" 
+                name={iconName}
                 size={80} 
                 color="#4CAF50" 
               />
             </View>
-            
-            {/* Başarı Mesajı */}
-            <Text style={styles.successTitle}>RFID Okuma Başarılı!</Text>
-            
-            {/* UID Bilgisi */}
-            <View style={styles.uidContainer}>
-              <Text style={styles.uidLabel}>UID:</Text>
-              <Text style={styles.uidValue}>{uid}</Text>
-            </View>
-            
-            {/* Alt Mesaj */}
-            <Text style={styles.successMessage}>
-              UID otomatik olarak forma eklendi
-            </Text>
-            
-            {/* Kapatma Butonu */}
-            <View style={styles.closeButtonContainer}>
-              <MaterialCommunityIcons 
-                name="close-circle-outline" 
-                size={24} 
-                color="#666" 
-                onPress={handleClose}
-              />
-            </View>
+            <Text style={styles.successTitle}>{title}</Text>
+            {subtitle ? (
+              <Text style={styles.successMessage}>{subtitle}</Text>
+            ) : null}
+            {showUid ? (
+              <View style={styles.uidContainer}>
+                <Text style={styles.uidLabel}>UID</Text>
+                <Text style={styles.uidValue}>{uid}</Text>
+              </View>
+            ) : null}
           </Surface>
         </Animated.View>
       </Animated.View>
@@ -130,45 +118,40 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+    backgroundColor: '#fff',
   },
   iconContainer: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   successTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#2E7D32',
-    marginBottom: 20,
+    marginBottom: 8,
     textAlign: 'center',
+  },
+  successMessage: {
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
+    marginBottom: 12,
   },
   uidContainer: {
     backgroundColor: '#F5F5F5',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
+    padding: 12,
     width: '100%',
     alignItems: 'center',
   },
   uidLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#666',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   uidValue: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#1B4332',
     fontFamily: 'monospace',
-  },
-  successMessage: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  closeButtonContainer: {
-    position: 'absolute',
-    top: 15,
-    right: 15,
   },
 });
