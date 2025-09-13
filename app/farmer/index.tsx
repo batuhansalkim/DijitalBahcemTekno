@@ -256,6 +256,13 @@ export default function FarmerHomeScreen() {
         </View>
       </Surface>
 
+      {/*AI Önerileri*/}
+      <AISuggestions 
+        loading={aiLoading} 
+        suggestions={aiSuggestions} 
+        onActionPress={handleSuggestionAction}
+      />
+
       {/* İstatistikler */}
       <View style={styles.statsContainer}>
         <Surface style={styles.statsCard} elevation={3}>
@@ -322,11 +329,6 @@ export default function FarmerHomeScreen() {
         </View>
       </View>
       
-      <AISuggestions 
-        loading={aiLoading} 
-        suggestions={aiSuggestions} 
-        onActionPress={handleSuggestionAction}
-      />
       {/* Aktif Kiralamalar */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
@@ -544,7 +546,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   actionCard: {
-    width: (width - 44) / 2,
+    width: (width - 40) / 2,
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 16,

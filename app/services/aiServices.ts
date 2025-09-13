@@ -125,25 +125,21 @@ export async function getAnomalyAlerts(customerId: string) {
   }
 }
 
-export async function getAnomalyGraph(customerId: string): Promise<string> {
-  try {
-    const res = await axios.get(
-      `${API_URL_USER}/api/anomaly-alerts/${customerId}/graph`,
-      { responseType: "arraybuffer" } // 🔑 Burada arraybuffer olacak
-    );
+export type AnomalyGraphResponse = {
+  image_base64: string;
+  anomalies: {
+    garden_id: string;
+    from_year: number;
+    to_year: number;
+    prev_yield: number;
+    curr_yield: number;
+    ratio: number;
+  }[];
+};
 
-    // Binary → Base64 dönüştür
-    const bytes = new Uint8Array(res.data);
-    let binary = "";
-    for (let i = 0; i < bytes.byteLength; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-
-    const base64 = global.btoa(binary); // RN ve tarayıcıda var
-    return `data:image/png;base64,${base64}`;
-  } catch (err) {
-    console.error("Anomaly Graph API error:", err);
-    throw err;
-  }
+export async function getAnomalyGraph(customerId: string): Promise<AnomalyGraphResponse> {
+  const res = await axios.get<AnomalyGraphResponse>(
+    `${API_URL_USER}/api/anomaly-alerts/${customerId}/graph`
+  );
+  return res.data;
 }
-

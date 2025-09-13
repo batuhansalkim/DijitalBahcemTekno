@@ -3,6 +3,7 @@ import { View, StyleSheet, FlatList, Image } from "react-native";
 import { Text, Button, Surface, Avatar, ProgressBar } from "react-native-paper";
 import { router } from "expo-router";
 import { getAnomalyAlerts, getAnomalyGraph } from "../services/aiServices";
+import { AnomalyGraphResponse } from "../services/aiServices";
 
 const SAMPLE_MY_TREES = [
   {
@@ -39,23 +40,19 @@ interface TreeItem {
 }
 
 export default function MyTreesScreen() {
-  const [alerts, setAlerts] = useState<any>(null);
-  const [graphUri, setGraphUri] = useState<string | null>(null);
+  const [graphData, setGraphData] = useState<AnomalyGraphResponse | null>(null);
 
-  useEffect(() => {
-    async function fetchAlerts() {
-      try {
-        const data = await getAnomalyAlerts("C0001");
-        setAlerts(data);
-
-        const graph = await getAnomalyGraph("C0001");
-        setGraphUri(graph);
-      } catch (err) {
-        console.error("Anomaly fetch error", err);
-      }
+useEffect(() => {
+  (async () => {
+    try {
+      const data = await getAnomalyGraph("C0001");
+      setGraphData(data);
+    } catch (e) {
+      console.error("Graph yüklenemedi:", e);
     }
-    fetchAlerts();
-  }, []);
+  })();
+}, ["C0001"]);
+
 
   const renderTreeCard = ({ item }: { item: TreeItem }) => (
     <Surface style={styles.treeCard} elevation={3}>
@@ -133,23 +130,32 @@ export default function MyTreesScreen() {
           </View>
 
           {/* 🔹 Anomali grafiği sadece veri varsa göster */}
-          {graphUri && (
-            <View style={styles.graphCard}>
-              <Text style={styles.graphTitle}>
-                📊 Yıllık Hasat Karşılaştırması
-              </Text>
-              <Image
-                source={{ uri: graphUri }}
-                style={styles.graphImage}
-                resizeMode="contain"
-              />
-              <Text style={styles.graphFooter}>
-                {alerts?.alerts?.length > 0
-                  ? `⚠ Anomali tespit edildi`
-                  : "✅ Her şey normal görünüyor"}
-              </Text>
-            </View>
-          )}
+          {graphData?.image_base64 && (
+          <View style={styles.graphCard}>
+            <Text style={styles.graphTitle}>📊 Yıllık Hasat Karşılaştırması</Text>
+
+            {/* Grafik */}
+            <Image
+              source={{ uri: `data:image/png;base64,${graphData.image_base64}` }}
+              style={styles.graphImage}
+              resizeMode="contain"
+            />
+
+            {/* Anomali Listesi */}
+            {graphData.anomalies?.length > 0 ? (
+              <View style={{ marginTop: 10 }}>
+                <Text style={[styles.graphFooter, {fontWeight: "bold"}]}>⚠ Anomali Tespit Edildi:</Text>
+                {graphData.anomalies.map((anomali: any, index: any) => (
+                  <Text key={index} style={{ color: "red", marginLeft: 8 }}>
+                    🌳 {anomali.garden_id} → {anomali.from_year} → {anomali.to_year}
+                  </Text>
+                ))}
+              </View>
+            ) : (
+              <Text style={styles.graphFooter}>✅ Her şey normal görünüyor</Text>
+            )}
+          </View>
+        )}
         </View>
       }
     />
