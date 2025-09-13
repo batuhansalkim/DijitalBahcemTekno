@@ -1,7 +1,10 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, StyleSheet, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 import { Text, Surface, Button, Avatar, List, Divider, IconButton, Chip } from 'react-native-paper';
 import { router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { fetchWeatherRecommendations, type AISuggestion } from '../services/aiServices';
+import AISuggestions from '../components/AISuggestions';
 
 const { width } = Dimensions.get('window');
 
@@ -137,6 +140,108 @@ export default function FarmerHomeScreen() {
     return '#D32F2F';
   };
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return '#D32F2F';
+      case 'medium': return '#FFA000';
+      case 'low': return '#2D6A4F';
+      default: return '#666';
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'maintenance': return 'wrench';
+      case 'harvest': return 'fruit-cherries';
+      case 'health': return 'heart-pulse';
+      case 'weather': return 'weather-cloudy';
+      case 'general': return 'lightbulb';
+      default: return 'information';
+    }
+  };
+
+  const [aiLoading, setAiLoading] = useState(true);
+  const [aiSuggestions, setAiSuggestions] = useState<AISuggestion[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      setAiLoading(true);
+  
+      const ciftci = {
+        id: "1",
+        ad: "Ahmet Yılmaz",
+        email: "ahmet@example.com",
+        konum: "Manisa, Türkiye",
+      };
+  
+      const bahce = {
+        id: "B1",
+        ad: "Zeytinlik",
+        bitkiTipi: "Zeytin",
+        konum: "Kirklareli, Türkiye",
+        kurulusYili: 2020,
+        agacKapasitesi: 580,
+        ortalamaYillikVerim: "4 ton",
+      };
+  
+      fetchWeatherRecommendations(ciftci, bahce)
+        .then((data) => {
+          if (isActive) {
+            const suggestions: AISuggestion[] =
+              data.oneriler?.map((oner: string, index: number) => ({
+                id: `weather-${index}`,
+                title: `Hava Durumu Önerisi ${index + 1}`,
+                description: oner,
+                priority: "medium",
+                category: "weather",
+                actionText: "Detayları Gör",
+                icon: "weather-cloudy",
+              })) || [];
+            setAiSuggestions(suggestions);
+          }
+        })
+        .catch((error) => {
+          console.error("Weather API error:", error);
+          if (isActive) setAiSuggestions([]);
+        })
+        .finally(() => {
+          if (isActive) setAiLoading(false);
+        });
+  
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
+  
+
+  const handleSuggestionAction = (suggestion: AISuggestion) => {
+    // AI önerilerine göre yönlendirme
+    if (suggestion.title.toLowerCase().includes('sulama')) {
+      router.push('/farmer/gardens' as any);
+      return;
+    }
+    if (suggestion.title.toLowerCase().includes('gübre')) {
+      router.push('/farmer/trees' as any);
+      return;
+    }
+    if (suggestion.title.toLowerCase().includes('hastalık') || suggestion.title.toLowerCase().includes('sağlık')) {
+      router.push('/farmer/trees' as any);
+      return;
+    }
+    if (suggestion.title.toLowerCase().includes('hasat')) {
+      router.push('/farmer/trees' as any);
+      return;
+    }
+    if (suggestion.title.toLowerCase().includes('hava')) {
+      router.push('/farmer/gardens' as any);
+      return;
+    }
+    // Varsayılan olarak mesajlar sayfasına yönlendir
+    router.push('/farmer/messages' as any);
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 32 }}>
       {/* Header */}
@@ -184,6 +289,7 @@ export default function FarmerHomeScreen() {
         </Surface>
       </View>
 
+
       {/* Gelir Özeti */}
       <Surface style={styles.incomeCard} elevation={3}>
         <View style={styles.incomeHeader}>
@@ -215,7 +321,12 @@ export default function FarmerHomeScreen() {
           ))}
         </View>
       </View>
-
+      
+      <AISuggestions 
+        loading={aiLoading} 
+        suggestions={aiSuggestions} 
+        onActionPress={handleSuggestionAction}
+      />
       {/* Aktif Kiralamalar */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
