@@ -9,6 +9,7 @@ import { useTreeUpload } from '../../hooks/useTreeUpload';
 import { TreeDataPackage } from '../../services/pinataService';
 import { NfcTutorialModal } from '../../components/NfcTutorialModal';
 import { SuccessModal } from '../../components/SuccessModal';
+import { fetchTreeDescription, fetchTreeStory } from '../../services/aiServices';
 
 interface TreeForm {
   name: string;
@@ -124,6 +125,10 @@ export default function AddTreeScreen() {
   const [showCustomGarden, setShowCustomGarden] = useState(false);
   const [customType, setCustomType] = useState('');
   const [customGarden, setCustomGarden] = useState('');
+  
+  // AI loading states
+  const [aiDescriptionLoading, setAiDescriptionLoading] = useState(false);
+  const [aiStoryLoading, setAiStoryLoading] = useState(false);
 
   // UID'yi forma otomatik doldur
   useEffect(() => {
@@ -185,6 +190,42 @@ export default function AddTreeScreen() {
     }));
   };
 
+  // AI ile açıklama oluştur
+  const generateDescriptionWithAI = async () => {
+    setAiDescriptionLoading(true);
+    try {
+      const aiData = await fetchTreeDescription(form);
+      
+      if (aiData.aciklama) {
+        setForm((prev) => ({ ...prev, description: aiData.aciklama }));
+      } else if (aiData.agacAciklamasi) {
+        setForm((prev) => ({ ...prev, description: aiData.agacAciklamasi }));
+      }
+    } catch (error) {
+      Alert.alert('Hata', 'AI ile açıklama oluşturulurken bir hata oluştu.');
+    } finally {
+      setAiDescriptionLoading(false);
+    }
+  };
+
+  // AI ile hikaye oluştur
+  const generateStoryWithAI = async () => {
+    setAiStoryLoading(true);
+    try {
+      const aiData = await fetchTreeStory(form);
+      
+      if (aiData.hikaye) {
+        setForm((prev) => ({ ...prev, story: aiData.hikaye }));
+      } else if (aiData.agacHikayesi) {
+        setForm((prev) => ({ ...prev, story: aiData.agacHikayesi }));
+      }
+    } catch (error) {
+      Alert.alert('Hata', 'AI ile hikaye oluşturulurken bir hata oluştu.');
+    } finally {
+      setAiStoryLoading(false);
+    }
+  };
+
   const validateForm = () => {
     const newErrors: Partial<Record<keyof TreeForm, string>> = {};
 
@@ -221,7 +262,7 @@ export default function AddTreeScreen() {
             lat: parseFloat(form.location.latitude),
             lon: parseFloat(form.location.longitude),
             accuracy_m: location?.accuracy_m || 0,
-            altitude_m: location?.alt
+            altitude_m: location?.alt || 0
           },
           timestamp: {
             collected_at_utc: new Date().toISOString(),
@@ -701,40 +742,74 @@ export default function AddTreeScreen() {
 
           {/* Açıklama */}
           <Surface style={styles.section} elevation={2}>
-            <Text style={styles.sectionTitle}>Açıklama</Text>
-            <TextInput
-              label="Ağaç hakkında detaylı bilgi"
-              value={form.description}
-              onChangeText={(text) => setForm((prev) => ({ ...prev, description: text }))}
-              mode="outlined"
-              multiline
-              numberOfLines={4}
-              style={[styles.input, styles.textArea, { color: '#000' }]}
-              outlineColor="#E0E0E0"
-              activeOutlineColor="#2E7D32"
-              textColor="#000"
-            />
+            <View style={styles.descriptionHeader}>
+              <Text style={styles.sectionTitle}>Açıklama</Text>
+              <Button
+                mode="outlined"
+                onPress={generateDescriptionWithAI}
+                loading={aiDescriptionLoading}
+                disabled={aiDescriptionLoading}
+                style={styles.aiButton}
+                contentStyle={styles.aiButtonContent}
+                textColor="#2E7D32"
+                icon="robot"
+                compact
+              >
+                AI ile Oluştur
+              </Button>
+            </View>
+            <View style={styles.textAreaContainer}>
+              <TextInput
+                label="Ağaç hakkında detaylı bilgi"
+                value={form.description}
+                onChangeText={(text) => setForm((prev) => ({ ...prev, description: text }))}
+                mode="outlined"
+                multiline
+                numberOfLines={4}
+                style={[styles.input, styles.textArea, { color: '#000' }]}
+                outlineColor="#E0E0E0"
+                activeOutlineColor="#2E7D32"
+                textColor="#000"
+              />
+            </View>
           </Surface>
 
           {/* Ağaç Hikayesi */}
           <Surface style={styles.section} elevation={2}>
-            <Text style={styles.sectionTitle}>🌳 Ağaç Hikayesi</Text>
+            <View style={styles.descriptionHeader}>
+              <Text style={styles.sectionTitle}>🌳 Ağaç Hikayesi</Text>
+              <Button
+                mode="outlined"
+                onPress={generateStoryWithAI}
+                loading={aiStoryLoading}
+                disabled={aiStoryLoading}
+                style={styles.aiButton}
+                contentStyle={styles.aiButtonContent}
+                textColor="#2E7D32"
+                icon="robot"
+                compact
+              >
+                AI ile Oluştur
+              </Button>
+            </View>
             <Text style={styles.storySubtitle}>
               Bu ağacın özel hikayesini paylaşın. Kiralayan kişilerle duygusal bağ kurun!
             </Text>
-            <TextInput
-              label="Ağacınızın hikayesini anlatın..."
-              value={form.story}
-              onChangeText={(text) => setForm((prev) => ({ ...prev, story: text }))}
-              mode="outlined"
-              multiline
-              numberOfLines={6}
-              style={[styles.input, styles.storyArea, { color: '#000' }]}
-              outlineColor="#E0E0E0"
-              activeOutlineColor="#2E7D32"
-              placeholder="Örn: Bu 15 yaşındaki zeytin ağacımız, dedemizin 2008'de diktiği ilk ağaçlardan. Her yıl 120kg zeytin veriyor ve ailemizin gururu. 'Barış Ağacı' olarak biliniyor çünkü komşularımızla birlikte hasat ediyoruz."
-              textColor="#000"
-            />
+            <View style={styles.textAreaContainer}>
+              <TextInput
+                label="Ağacınızın hikayesini anlatın..."
+                value={form.story}
+                onChangeText={(text) => setForm((prev) => ({ ...prev, story: text }))}
+                mode="outlined"
+                multiline
+                numberOfLines={6}
+                style={[styles.input, styles.storyArea, { color: '#000' }]}
+                outlineColor="#E0E0E0"
+                activeOutlineColor="#2E7D32"
+                placeholder="Örn: Bu 15 yaşındaki zeytin ağacımız, dedemizin 2008'de diktiği ilk ağaçlardan. Her yıl 120kg zeytin veriyor ve ailemizin gururu. 'Barış Ağacı' olarak biliniyor çünkü komşularımızla birlikte hasat ediyoruz."
+                textColor="#000"
+              />
+            </View>
             <View style={styles.storyInfo}>
               <MaterialCommunityIcons name="lightbulb-outline" size={16} color="#666" />
               <Text style={styles.storyInfoText}>
@@ -1189,5 +1264,24 @@ const styles = StyleSheet.create({
     minHeight: 50,
     paddingHorizontal: 12,
     marginTop: -6,
+  },
+  descriptionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  aiButton: {
+    borderRadius: 20,
+    borderColor: '#2E7D32',
+    width:130,
+    height: 45,
+  },
+  aiButtonContent: {
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+  },
+  textAreaContainer: {
+    position: 'relative',
   },
 }); 

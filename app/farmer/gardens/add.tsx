@@ -7,6 +7,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { TextInput as RNTextInput } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useNfcReader } from '../../hooks/useNfcReader';
+import { fetchGardenDescription } from '../../services/aiServices';
 
 interface GardenForm {
   name: string;
@@ -109,6 +110,7 @@ export default function AddGardenScreen() {
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof GardenForm, string>>>({});
+  const [aiLoading, setAiLoading] = useState(false);
 
   // UID'yi forma otomatik doldur
   useEffect(() => {
@@ -116,6 +118,27 @@ export default function AddGardenScreen() {
       setForm(prev => ({ ...prev, rfidCode: uid }));
     }
   }, [uid]);
+
+  // AI ile bahçe açıklaması oluştur
+  const generateWithAI = async () => {
+    setAiLoading(true);
+    try {
+      // Mevcut form verilerini AI servisine gönder
+      const aiData = await fetchGardenDescription(form);
+      
+      // Sadece açıklama alanını AI'dan gelen veri ile doldur
+      setForm(prev => ({
+        ...prev,
+        description: aiData.bahceAciklamasi || prev.description,
+      }));
+    } catch (error) {
+      console.error('AI generation error:', error);
+      // Hata durumunda kullanıcıya bilgi ver
+      alert('AI ile veri oluşturulurken bir hata oluştu. Lütfen manuel olarak doldurun.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -288,7 +311,20 @@ export default function AddGardenScreen() {
             </View>
 
             <View style={{ marginBottom: 8 }}>
-              <Text style={{ color: '#000', fontWeight: 'bold', marginBottom: 4 }}>Açıklama</Text>
+              <View style={styles.descriptionHeader}>
+                <Text style={{ color: '#000', fontWeight: 'bold', marginBottom: 4 }}>Açıklama</Text>
+                <Button
+                  mode="outlined"
+                  onPress={generateWithAI}
+                  loading={aiLoading}
+                  disabled={aiLoading}
+                  icon="robot"
+                  style={styles.aiButton}
+                  textColor="#2D6A4F"
+                >
+                  AI ile Oluştur
+                </Button>
+              </View>
               <RNTextInput
                 value={form.description}
                 onChangeText={(text) => setForm((prev) => ({ ...prev, description: text }))}
@@ -528,7 +564,7 @@ export default function AddGardenScreen() {
           onPress={handleSubmit}
           style={styles.saveBtn}
           buttonColor="#2E7D32"
-          contentStyle={{ color: '#fff' }}
+          contentStyle={{ paddingVertical: 8 }}
           textColor='#ffffff'
         >
           Bahçe Ekle
@@ -564,4 +600,14 @@ const styles = StyleSheet.create({
   rfidContainer: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginBottom: 12 },
   rfidInput: { flex: 1 },
   nfcButton: { borderRadius: 8, minHeight: 48, paddingHorizontal: 12 },
+  descriptionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  aiButton: {
+    borderRadius: 20,
+    borderColor: '#2D6A4F',
+  },
 }); 
